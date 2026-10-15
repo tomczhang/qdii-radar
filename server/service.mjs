@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { mergeGildata } from './gildata.mjs';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { agencyQuota, chinaDate, classifyChange, digest, isQuotaNotice, noticeShares, nextDailyRun, parseQuotaNotice, quotaText, unknownQuota } from './domain.mjs';
@@ -32,7 +33,7 @@ export function currentFund(store, fund, now = new Date()) {
 }
 export function dashboard(store, mail) {
   const funds = catalog.map(f => currentFund(store, f));
-  return { funds, changes: store.events(), meta: { mode: 'live', updatedAt: store.getMeta('marketUpdatedAt'), lastRun: store.getMeta('lastRun'), nextRunAt: nextDailyRun(new Date(), process.env.DAILY_SYNC_TIME || '07:30'), dailySyncTime: process.env.DAILY_SYNC_TIME || '07:30', timezone: 'Asia/Shanghai', mailConfigured: mail.configured, gildataConfigured: gildataConfigured(), reviewCount: store.notices(1000).filter(n => ['pending_review', 'fetch_error'].includes(n.state)).length, staleCount: funds.filter(f => f.stale).length, returnDates: [...new Set(funds.map(f => f.returnsAsOf).filter(Boolean))] } };
+  return { funds, changes: store.events(), meta: { mode: 'live', updatedAt: store.getMeta('marketUpdatedAt'), lastRun: store.getMeta('lastRun'), nextRunAt: nextDailyRun(new Date(), process.env.DAILY_SYNC_TIME || '07:30'), dailySyncTime: process.env.DAILY_SYNC_TIME || '07:30', timezone: 'Asia/Shanghai', mailConfigured: mail.configured, gildataConfigured: gildataConfigured(), marketSources: [...new Set(funds.flatMap(f => (f.marketSource || '').split(' / ')).filter(Boolean))], gildataFundCount: funds.filter(f => f.marketSource?.includes('恒生聚源')).length, reviewCount: store.notices(1000).filter(n => ['pending_review', 'fetch_error'].includes(n.state)).length, staleCount: funds.filter(f => f.stale).length, returnDates: [...new Set(funds.map(f => f.returnsAsOf).filter(Boolean))] } };
 }
 export function recordChanges(store, fund, before, after, source, onEvent = () => {}) {
   for (const channel of ['agency', 'direct']) {
@@ -111,17 +112,17 @@ export async function syncNotices(store, fund, metrics, providers = { fetchNotic
 export async function synchronize(store, mail, options = {}) {
   if (!store.acquireLease('synchronize')) return { skipped: true, reason: '已有同步任务运行' };
   const startedAt = new Date().toISOString();
-  const metrics = { startedAt, status: 'running', marketSuccess: 0, marketErrors: 0, noticesDiscovered: 0, noticesParsed: 0, pendingReview: 0, noticeErrors: 0, errors: [] };
+  const metrics = { startedAt, status: 'running', marketSuccess: 0, marketErrors: 0, gildataSuccess: 0, gildataErrors: 0, noticesDiscovered: 0, noticesParsed: 0, pendingReview: 0, noticeErrors: 0, errors: [] };
   store.setMeta('lastRun', metrics);
   const before = new Map(catalog.map(f => [f.code, store.getMeta(`published:${f.code}`) || currentFund(store, f)]));
   try {
     await mapLimit(catalog, 3, async fund => {
       if (!options.noticesOnly) {
         try {
-          const snapshot = await fetchMarket(fund);
+          let snapshot = await fetchMarket(fund);
           if (gildataConfigured()) {
-            try { Object.assign(snapshot, await fetchGildata(fund)); }
-            catch { snapshot.marketError = '聚源请求失败，本次使用天天数据'; }
+            try { snapshot = mergeGildata(snapshot, await fetchGildata(fund)); metrics.gildataSuccess++; }
+            catch { snapshot.marketError = '聚源请求或校验失败，本次使用天天数据'; metrics.gildataErrors++; metrics.errors.push({ code: fund.code, stage: 'gildata', message: snapshot.marketError }); }
           }
           const dir = path.join(store.directory, 'market'); await fs.mkdir(dir, { recursive: true, mode: 0o700 });
           await fs.writeFile(path.join(dir, fund.code + '.json'), JSON.stringify(snapshot), { mode: 0o600 });
@@ -139,7 +140,7 @@ export async function synchronize(store, mail, options = {}) {
       savePublishedBaseline(store, fund.code, after);
     }
     if (metrics.marketSuccess) store.setMeta('marketUpdatedAt', new Date().toISOString());
-    metrics.status = metrics.marketErrors || metrics.noticeErrors ? 'partial' : 'success';
+    metrics.status = metrics.marketErrors || metrics.noticeErrors || metrics.gildataErrors ? 'partial' : 'success';
     metrics.finishedAt = new Date().toISOString();
     store.setMeta('lastRun', metrics);
     if (metrics.status === 'success' && !options.noticesOnly) store.setMeta('lastDailySuccess', chinaDate());

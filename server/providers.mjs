@@ -1,9 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { agencyQuota, buildNavTrend, chinaDate, finiteNumber } from './domain.mjs';
 
 const mobileBase = 'https://fundmobapi.eastmoney.com/FundMNewApi/';
@@ -54,7 +51,7 @@ export async function fetchMarket(fund) {
     agency: { ...agencyQuota(b), source: '天天基金', observedAt: new Date().toISOString() },
     returns, returnsAsOf: asOf, navAsOf: b.FSRQ, dailyChange: finiteNumber(b.RZDF),
     ...trend,
-    marketSource: '天天基金', marketError: null,
+    marketSource: '天天基金', performanceSource: '天天基金', navSource: '天天基金', trendSource: '天天基金', marketError: null,
     raw: { basic, period, history },
   };
 }
@@ -83,30 +80,4 @@ export async function fetchNoticeText(notice, directory) {
   return text;
 }
 
-export const gildataConfigured = () => !!process.env.GILDATA_MCP_URL;
-export function parseMarkdownTable(markdown) {
-  const lines = markdown.split('\n').filter(line => line.trim().startsWith('|'));
-  if (lines.length < 3) return [];
-  const cells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
-  const headers = cells(lines[0]);
-  return lines.slice(2).map(line => Object.fromEntries(cells(line).map((value, index) => [headers[index], value])));
-}
-export async function fetchGildata(fund) {
-  const url = new URL(process.env.GILDATA_MCP_URL);
-  const headers = process.env.GILDATA_MCP_TOKEN ? { Authorization: `Bearer ${process.env.GILDATA_MCP_TOKEN}` } : {};
-  const client = new Client({ name: 'qdii-quota-radar', version: '1.0.0' });
-  const Transport = process.env.GILDATA_MCP_TRANSPORT === 'sse' ? SSEClientTransport : StreamableHTTPClientTransport;
-  try {
-    await client.connect(new Transport(url, { requestInit: { headers } }), { timeout: 30000 });
-    const response = await client.callTool({ name: 'FinQuery', arguments: { query: `仅查询人民币公募基金${fund.code}，截至${chinaDate()}最近已公布的近一年、近三年、近五年累计收益率（非年化）、对应截止日期和成立日期；另返回最近30个已公布交易日的复权单位净值。保留基金代码，输出结构化表格。` } }, undefined, { timeout: 90000 });
-    if (response.isError) throw new Error('聚源返回错误');
-    const payload = response.structuredContent || JSON.parse(response.content.filter(c => c.type === 'text').map(c => c.text).join('\n'));
-    if (payload.code !== 0 || !Array.isArray(payload.results)) throw new Error('聚源结构不匹配');
-    const rows = payload.results.flatMap(r => parseMarkdownTable(r.table_markdown || ''));
-    const periods = rows.filter(r => r['基金代码'] === fund.code && ['近一年', '近三年', '近五年'].includes(r['时间区间']));
-    if (!periods.length || new Set(periods.map(r => r['截止日期'])).size !== 1) throw new Error('聚源收益截止日不一致或缺失');
-    const returns = Object.fromEntries([['y1', '近一年'], ['y3', '近三年'], ['y5', '近五年']].map(([key, name]) => [key, finiteNumber(periods.find(r => r['时间区间'] === name)?.['基金收益率(%)'])]));
-    const navs = rows.filter(r => r['基金代码'] === fund.code && finiteNumber(r['复权单位净值(元)']) > 0).sort((a, b) => a['截止日期'].localeCompare(b['截止日期'])).slice(-30);
-    return { returns, returnsAsOf: periods[0]['截止日期'], marketSource: '恒生聚源', ...(navs.length > 1 ? { trend: navs.map(r => Number((Number(r['复权单位净值(元)']) / Number(navs[0]['复权单位净值(元)']) * 100).toFixed(5))), trendDates: navs.map(r => r['截止日期']) } : {}), gildataRaw: payload };
-  } finally { await client.close().catch(() => {}); }
-}
+export { fetchGildata, gildataConfigured } from './gildata.mjs';
