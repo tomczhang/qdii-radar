@@ -1,0 +1,15 @@
+services:
+  radar:
+    build: .
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 4387
+      DATA_DIR: /app/.data
+    ports:
+      - "4387:4387"
+    volumes:
+      - radar-data:/app/.data
+    restart: unless-stopped
+volumes:
+  radar-data:

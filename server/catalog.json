@@ -1,0 +1,146 @@
+[
+  {
+    "code": "021000",
+    "name": "南方纳斯达克100",
+    "manager": "南方基金",
+    "share": "I",
+    "index": "nasdaq",
+    "type": "指数基金",
+    "color": "#5883c4"
+  },
+  {
+    "code": "000834",
+    "name": "大成纳斯达克100",
+    "manager": "大成基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#cf8364"
+  },
+  {
+    "code": "008971",
+    "name": "大成纳斯达克100",
+    "manager": "大成基金",
+    "share": "C",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#cf8364"
+  },
+  {
+    "code": "019441",
+    "name": "万家纳斯达克100",
+    "manager": "万家基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "指数基金",
+    "color": "#b8a067"
+  },
+  {
+    "code": "539001",
+    "name": "建信纳斯达克100",
+    "manager": "建信基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "指数基金",
+    "color": "#557d96"
+  },
+  {
+    "code": "040046",
+    "name": "华安纳斯达克100",
+    "manager": "华安基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#7b9272"
+  },
+  {
+    "code": "014978",
+    "name": "华安纳斯达克100",
+    "manager": "华安基金",
+    "share": "C",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#7b9272"
+  },
+  {
+    "code": "016452",
+    "name": "南方纳斯达克100",
+    "manager": "南方基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "指数基金",
+    "color": "#5883c4"
+  },
+  {
+    "code": "019524",
+    "name": "华泰柏瑞纳斯达克100",
+    "manager": "华泰柏瑞基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#7f7db4"
+  },
+  {
+    "code": "270042",
+    "name": "广发纳斯达克100",
+    "manager": "广发基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#ab746b"
+  },
+  {
+    "code": "021778",
+    "name": "广发纳斯达克100",
+    "manager": "广发基金",
+    "share": "F",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#ab746b"
+  },
+  {
+    "code": "019547",
+    "name": "招商纳斯达克100",
+    "manager": "招商基金",
+    "share": "A",
+    "index": "nasdaq",
+    "type": "ETF联接",
+    "color": "#ae856a"
+  },
+  {
+    "code": "050025",
+    "name": "博时标普500",
+    "manager": "博时基金",
+    "share": "A",
+    "index": "sp500",
+    "type": "ETF联接",
+    "color": "#637d98"
+  },
+  {
+    "code": "006075",
+    "name": "博时标普500",
+    "manager": "博时基金",
+    "share": "C",
+    "index": "sp500",
+    "type": "ETF联接",
+    "color": "#637d98"
+  },
+  {
+    "code": "017641",
+    "name": "摩根标普500",
+    "manager": "摩根基金",
+    "share": "A",
+    "index": "sp500",
+    "type": "指数基金",
+    "color": "#738a7e"
+  },
+  {
+    "code": "161125",
+    "name": "易方达标普500",
+    "manager": "易方达基金",
+    "share": "A",
+    "index": "sp500",
+    "type": "指数基金",
+    "color": "#b68a5f"
+  }
+]

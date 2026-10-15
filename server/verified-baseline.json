@@ -1,0 +1,178 @@
+[
+  {
+    "code": "040046",
+    "channel": "direct",
+    "status": "open",
+    "limit": 5,
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "note": "同类份额、单日、单基金账户：申购+定投合计；份额单独计算",
+    "sourceUrl": "https://hongdianfund.com/FundAnnouncement/Detail/040046/0000000000001s4pp1",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "014978",
+    "channel": "direct",
+    "status": "open",
+    "limit": 5,
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "note": "同类份额、单日、单基金账户：申购+定投合计；份额单独计算",
+    "sourceUrl": "https://hongdianfund.com/FundAnnouncement/Detail/040046/0000000000001s4pp1",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "270042",
+    "channel": "direct",
+    "status": "paused",
+    "limit": null,
+    "effectiveAt": "2026-10-15T00:00:00+08:00",
+    "note": "同类份额：跨销售渠道+申购+定投（含不定额）+转换转入合计；各份额分别算",
+    "sourceUrl": "https://www.hongdianfund.com/FundAnnouncement/Detail/270042/0000000000001sd04t",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "021778",
+    "channel": "direct",
+    "status": "paused",
+    "limit": null,
+    "effectiveAt": "2026-10-15T00:00:00+08:00",
+    "note": "同类份额：跨销售渠道+申购+定投（含不定额）+转换转入合计；各份额分别算",
+    "sourceUrl": "https://www.hongdianfund.com/FundAnnouncement/Detail/270042/0000000000001sd04t",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "000834",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-06-04T00:00:00+08:00",
+    "note": "同类份额、单日、单基金账户：申购+定投合计；份额单独计算",
+    "sourceUrl": "https://www.dcfund.com.cn/plat_files/upload/ann_upload/20260602/202606021780401593666.pdf",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "008971",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-06-04T00:00:00+08:00",
+    "note": "同类份额、单日、单基金账户：申购+定投合计；份额单独计算",
+    "sourceUrl": "https://www.dcfund.com.cn/plat_files/upload/ann_upload/20260602/202606021780401593666.pdf",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "016452",
+    "channel": "direct",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-07-09T00:00:00+08:00",
+    "note": "同类份额、单日、单基金账户：申购+定投+转换转入合计；份额单独计算",
+    "sourceUrl": "https://www.9fzt.com/detail/fund_016452_2_10771483.html",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "021000",
+    "channel": "direct",
+    "status": "open",
+    "limit": 200,
+    "effectiveAt": "2026-07-21T00:00:00+08:00",
+    "note": "同类份额、单日、单基金账户：申购+定投+转换转入合计；份额单独计算",
+    "sourceUrl": "https://www.9fzt.com/detail/fund_021000_2_10777974.html",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "019524",
+    "channel": "direct",
+    "status": "open",
+    "limit": 5,
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "note": "A/C/I合并计算；单日单个基金账户，单笔或累计；业务：申购,定期定额投资；公告未区分直销和代销；同一基金账户限额不能按渠道简单相加",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609221829732369_1.pdf",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "019547",
+    "channel": "direct",
+    "status": "paused",
+    "limit": null,
+    "effectiveAt": "2026-10-14T00:00:00+08:00",
+    "note": "当前A/C均暂停；原大额公告未明确A/C合并或分别，保留待确认；基金账户；业务：申购,定期定额投资；当前全渠道暂停；9/1公告自9/2直销限10，6/9公告自6/10限10",
+    "sourceUrl": "https://www.cmfchina.com/web/fundnoticedetail/226476/index.html",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "019441",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-23T00:00:00+08:00",
+    "note": "A/C合并计算；各渠道单日单个基金账户单笔或多笔累计；业务：申购,定期定额投资；代销10，直销100，A/C在各渠道额度内合并；是否跨直代合并未明确，勿擅自加总",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609281829947820_1.pdf",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "539001",
+    "channel": "direct",
+    "status": "open",
+    "limit": 50,
+    "effectiveAt": "2026-08-20T00:00:00+08:00",
+    "note": "不同份额分别计算；单日单个基金账户单笔或多笔累计；业务：申购,定期定额投资；直销50是明确例外；其他渠道10",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202608191828132673_1.pdf",
+    "reviewedAt": "2026-10-15T16:30:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "050025",
+    "channel": "direct",
+    "status": "paused",
+    "limit": null,
+    "effectiveAt": "2026-05-11T00:00:00+08:00",
+    "note": "A、C两类份额暂停申购、转换转入、定投；E类不在本条规则范围。",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202605081822057674_1.pdf",
+    "reviewedAt": "2026-10-15T18:33:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "006075",
+    "channel": "direct",
+    "status": "paused",
+    "limit": null,
+    "effectiveAt": "2026-05-11T00:00:00+08:00",
+    "note": "A、C两类份额暂停申购、转换转入、定投；E类不在本条规则范围。",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202605081822057674_1.pdf",
+    "reviewedAt": "2026-10-15T18:33:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "017641",
+    "channel": "direct",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-07-27T00:00:00+08:00",
+    "note": "单个基金账户、单个人民币份额类别每日申购、定投、转换转入累计10元；本公告覆盖7月10日的旧直销300元规则。",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202607241827315718_1.pdf",
+    "reviewedAt": "2026-10-15T18:33:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  },
+  {
+    "code": "161125",
+    "channel": "direct",
+    "status": "paused",
+    "limit": null,
+    "effectiveAt": "2026-03-19T00:00:00+08:00",
+    "note": "所有基金份额暂停申购和定投；后续海外休市恢复公告明确仍受既有暂停规则约束。",
+    "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202603181820618457_1.pdf",
+    "reviewedAt": "2026-10-15T18:33:00+08:00",
+    "reviewedThrough": "2026-10-15"
+  }
+]

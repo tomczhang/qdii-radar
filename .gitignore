@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+.data/
+.test-data/
+
+# Local research, screenshots and temporary verification scripts
+work/
+outputs/
