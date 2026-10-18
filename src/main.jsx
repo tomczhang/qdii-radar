@@ -17,7 +17,7 @@ import PurchaseCalculator from './components/PurchaseCalculator.jsx';
 import InvestmentRisk from './components/InvestmentRisk.jsx';
 import UpdateStatus from './components/UpdateStatus.jsx';
 import PublisherFollow from './components/PublisherFollow.jsx';
-import {nextDashboardRefresh} from '../shared/refresh-schedule.mjs';
+import {dashboardRefreshDelay} from '../shared/refresh-schedule.mjs';
 const cn = (...values) => values.filter(Boolean).join(' ');
 const number = (n) => new Intl.NumberFormat('zh-CN').format(n);
 const percent = (n) => n == null ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
@@ -97,8 +97,9 @@ function MobileFundCard({ fund, favorite, onFavorite, onDetail, onAlert, alerts 
   const subscribed = alerts.some(a => a.code === fund.code || a.code === 'all');
   return <article className={cn('mobile-fund', expanded && 'is-expanded')} data-fund-code={fund.code}>
     <button className="mobile-fund-toggle" aria-expanded={expanded} aria-controls={detailsId} aria-label={`${expanded ? '收起' : '展开'}${fund.name}${fund.share}收益与走势`} onClick={() => setExpanded(value => !value)}>
-      <span className="mobile-fund-heading"><FundIdentity fund={fund} as="span" /><ChevronDown className="fund-expand-icon" size={18} /></span>
+      <span className="mobile-fund-heading"><FundIdentity fund={fund} as="span" /></span>
       <span className="mobile-quotas"><span><span>代销额度 <small>元/日</small></span><Quota value={fund.agency} /></span><span><span>直销额度 <small>元/日</small></span><Quota value={fund.direct} /></span></span>
+      <span className="mobile-fund-disclosure">{expanded ? '收起收益与走势' : '查看收益与走势'}<ChevronDown className="fund-expand-icon" size={16}/></span>
     </button>
     <button className={cn('favorite-button', favorite && 'is-favorite')} onClick={onFavorite} aria-label={`${favorite ? '取消关注' : '关注'}${fund.name}${fund.share}`} aria-pressed={favorite}><Star size={18} /></button>
     <button className="mobile-fund-fees fee-detail-button" onClick={onDetail} aria-label={`查看${fund.name}${fund.share}费率`}><FundFees fund={fund} compact/><ChannelScope fund={fund} compact/></button>
@@ -234,12 +235,13 @@ function App() {
     try { localStorage.setItem(storageKey, JSON.stringify({ favorites })); setStorageError(false); } catch { setStorageError(true); }
   }, [favorites]);
   useEffect(() => {
-    let cancelled = false, timer, morning = '07:30';
+    let cancelled = false, timer, latestMeta;
     const load = async () => {
+      let failed = false;
       try { const [board, subscriptions] = await Promise.all([api('/api/dashboard'), NOTIFICATIONS_ENABLED ? api('/api/subscriptions') : Promise.resolve({ subscriptions: [] })]);
-        if (cancelled) return; morning = board.meta.dailySyncTime || '07:30'; setFunds(board.funds); setQuotaChanges(board.changes); setDataMeta(board.meta); setAlerts(subscriptions.subscriptions); setLoadError('');
-      } catch (error) { if (!cancelled) setLoadError(error.message); }
-      finally { if (!cancelled) { setLoading(false); timer = setTimeout(load, Math.max(1, nextDashboardRefresh(Date.now(), morning) - Date.now())); } }
+        if (cancelled) return; latestMeta = board.meta; setFunds(board.funds); setQuotaChanges(board.changes); setDataMeta(board.meta); setAlerts(subscriptions.subscriptions); setLoadError('');
+      } catch (error) { failed = true; if (!cancelled) setLoadError(error.message); }
+      finally { if (!cancelled) { setLoading(false); timer = setTimeout(load, dashboardRefreshDelay(latestMeta, Date.now(), failed)); } }
     };
     load();
     return () => { cancelled = true; clearTimeout(timer); };
@@ -298,12 +300,12 @@ function App() {
       </div>
       <main>
         {(loading || loadError) && <div className="live-status" role="status"><Info size={15} />{loading ? '正在加载真实数据…' : loadError}</div>}
-        {!loading && <DataIssues funds={funds} onDetail={fund => setModal({type: 'fund', fund})}/>}
+        {!loading && <DataIssues funds={funds} syncing={dataMeta.lastRun?.status === 'running'} onDetail={fund => setModal({type: 'fund', fund})}/>}
         <div className="page-heading"><div><div className="eyebrow"><span />NASDAQ 100 & S&P 500</div><h1>{page === 'overview' ? '今日申购额度' : page === 'calculator' ? '购买计算器' : page === 'changes' ? '额度动态' : '我的邮箱提醒'}</h1>{page !== 'overview' && <p>{page === 'calculator' ? '输入金额与目标比例，算清每次投多少、预计多久投完。' : page === 'changes' ? '查看近30天恢复申购、额度调整等变化，按生效时间倒序排列。' : '选择你关心的变化，其余时间安心等待。'}</p>}</div><div className="heading-actions">{page === 'overview' && venue === 'otc' && <button type="button" role="switch" aria-checked={excludeSmall} aria-label="剔除10元及以下额度" className="overview-quota-switch calculator-toggle-row" onClick={() => setExcludeSmall(value => !value)}><span>剔除 ≤10 元额度</span><span className="calculator-toggle-track" aria-hidden="true"><span/></span></button>}{page === 'overview' && <button className="quota-changes-notice" onClick={() => changePage('changes')} title={dataMeta.changesCoverage?.complete ? '查看近30天额度变化明细' : '查看近30天已核验的额度变化；部分历史仍在核验中'}><span className="changes-notice-period">近30天</span><span className="changes-notice-text">{quotaChanges.length || dataMeta.changesCoverage?.complete ? <><strong>{quotaChanges.length}</strong> 条额度动态</> : '历史待核验'}</span><ArrowRight size={15} aria-hidden="true" /></button>}{NOTIFICATIONS_ENABLED && <button className="button primary heading-cta" onClick={() => openAlert()}><Bell size={17} />设置额度提醒</button>}</div></div>
         {page === 'overview' && venue === 'otc' && <><section id="quota-summary" className={cn('summary-grid', summaryExpanded && 'summary-expanded')} aria-label="额度概览">{[['both','合并可买总额度'],['agency','代销额度小计'],['direct','直销额度小计']].map(([key,label]) => <div key={key} className={cn('summary-card', key === 'both' && 'combined-summary', key === 'direct' && 'direct-summary')} data-quota-summary={key}><div className="summary-label">{label}</div><div className="summary-number"><span className="summary-currency">¥</span><RollingAmount value={totals[key].amount} replayKey={excludeSmall} /><small>/ 日</small></div><div className="summary-breakdown">{[['nasdaq','纳指'],['sp500','标普']].map(([index,name])=><span key={index} data-index-total={index}>{name} <strong>{indexTotals[key][index].amount == null ? '—' : `¥${number(indexTotals[key][index].amount)}`}</strong>{indexTotals[key][index].unknown > 0 && <em>（已知）</em>}</span>)}</div><div className="summary-periods">
               <div className="summary-history summary-period" data-history-summary={key}><span className="period-badge">历史累计</span><span>过去{STABILITY_WINDOW_DAYS}个交易日</span><strong>{historyTotals[key].amount == null ? '—' : `¥${number(historyTotals[key].amount)}`}</strong></div>
               <div className="summary-forecast summary-period" data-forecast-summary={key}><span className="period-badge">静态预估</span><span>未来{STABILITY_WINDOW_DAYS}个交易日</span><strong>{totals[key].amount == null ? '—' : `¥${number(totals[key].amount * STABILITY_WINDOW_DAYS)}`}</strong></div>
-            </div><p className="forecast-note">20个交易日约一个月；预估未计后续额度调整及境外休市</p></div>)}</section><button type="button" className="mobile-summary-toggle" aria-expanded={summaryExpanded} aria-controls="quota-summary" onClick={() => setSummaryExpanded(value => !value)}>{summaryExpanded ? '收起历史与指数明细' : '查看历史与指数明细'}<ChevronDown size={14}/></button></>}
+            </div><p className="forecast-note">20个交易日约一个月；预估未计后续额度调整及境外休市</p></div>)}</section><button type="button" className="mobile-summary-toggle" aria-expanded={summaryExpanded} aria-controls="quota-summary" onClick={() => setSummaryExpanded(value => !value)}>{summaryExpanded ? '收起详情' : '查看详情'}<ChevronDown size={14}/></button></>}
         {page === 'calculator' && <PurchaseCalculator funds={funds} favorites={favorites} updatedAt={dataMeta.updatedAt} onDetail={fund => fund && setModal({ type: 'fund', fund })} />}
         {isBoard && <div className="venue-tabs" role="group" aria-label="交易方式">{[['otc', '场外申购', otcFunds.length], ['etf', '场内 ETF', funds.length - otcFunds.length]].map(([id, title, count]) => <button key={id} className={cn(venue === id && 'selected')} aria-pressed={venue === id} onClick={() => { usage.tabClick('venue', id, page); setVenue(id); setOnlyOpen(id === 'otc'); setSort(id === 'etf' ? 'premium:asc' : 'combined:desc'); }}>{title}<span>{count}</span></button>)}</div>}
         {isBoard && <section className="fund-board" aria-label="基金比较">

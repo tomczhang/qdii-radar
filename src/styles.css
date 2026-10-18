@@ -197,12 +197,13 @@ th.quota-cell.sorted { background: #d7e6ff; }
   .change-row time{grid-column:2;grid-row:3;margin:0;white-space:nowrap;font-size:14px;line-height:1.5}
   .mobile-fund{position:relative}
   .mobile-fund-toggle{display:block;width:100%;padding:0;text-align:left;border-radius:7px}
-  .mobile-fund-toggle .mobile-fund-heading{padding-right:34px;min-height:40px}
+  .mobile-fund-toggle .mobile-fund-heading{padding-right:44px;min-height:40px}
   .mobile-fund-heading .fund-identity{min-width:0}
   .mobile-fund-heading .fund-name{white-space:normal}
   .mobile-fund>.favorite-button{position:absolute;right:12px;top:17px;width:30px;height:30px}
   .fund-expand-icon{flex-shrink:0;color:#6384b3;transition:transform .18s}
-  .is-expanded .fund-expand-icon{transform:rotate(180deg)}
+  .mobile-fund.is-expanded > .mobile-fund-toggle .fund-expand-icon{transform:rotate(180deg)}
+  .mobile-fund-disclosure{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;margin-top:4px;color:#3265bb;font-size:11px}
   .mobile-fund .mobile-quotas{margin-top:13px}
   .mobile-fund-expanded[hidden]{display:none}
   .mobile-fund-expanded{padding-top:18px}
@@ -508,8 +509,12 @@ th.quota-cell.sorted { background: #d7e6ff; }
   .group-periods > span { gap: 6px 10px; }
   .group-periods small { flex-basis: 100%; }
   .group-detail-note { padding: 0 12px 14px; }
-  .fund-group-details .mobile-funds { padding: 0 12px; }
-  .fund-group-details .mobile-fund { border-radius: 0; border: 0; border-top: 1px solid var(--line); box-shadow: none; margin: 0; padding-inline: 0; }
+  .fund-group-details .mobile-funds { padding: 4px 12px 12px; gap: 12px; background: #f8fbff; }
+  .fund-group-details .mobile-fund { min-width: 0; border-radius: 10px; border: 1px solid var(--line); box-shadow: none; margin: 0; padding: 14px; }
+  .fund-group-details .mobile-fund > .favorite-button { top: 14px; right: 10px; width: 36px; height: 36px; }
+  .fund-group-details .mobile-fund-fees { flex-wrap: wrap; gap: 8px 16px; padding-bottom: 0; }
+  .fund-group-details .mobile-quotas > span { min-width: 0; padding-inline: 12px; }
+  .fund-group-details .fund-meta { flex-wrap: wrap; }
 }
 
 .group-list-heading button[aria-pressed="true"] { color: #2056c1; }
@@ -547,6 +552,11 @@ th.quota-cell.sorted { background: #d7e6ff; }
 
 /* Execution cards put the venue and exact debit schedule before supporting data. */
 .plan-execution { margin-top: 24px; }
+.plan-execution .plan-blocked { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 16px; border: 1px solid #e5c58d; border-radius: 10px; background: #fff6e6; color: #805015; }
+.plan-execution .plan-blocked > svg { flex-shrink: 0; margin-top: 3px; }
+.plan-execution .plan-blocked > div { min-width: 0; }
+.plan-execution .plan-blocked strong { display: block; color: #75450c; font-size: 16px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+.plan-execution .plan-blocked p { margin: 5px 0 0; color: inherit; font-size: 14px; font-weight: 500; line-height: 1.7; }
 .plan-execution-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .plan-execution .plan-execution-heading h3 { margin: 0; font-size: 16px; }
 .plan-execution-heading > span { font-size: 12px; color: #637d9e; }
@@ -711,9 +721,8 @@ th.quota-cell.sorted { background: #d7e6ff; }
 /* Compact author invitation; the QR code opens on demand. */
 .topbar { height: auto; min-height: 76px; padding-block: 10px; }
 .publisher-follow { display: flex; align-items: center; gap: 12px; padding: 4px 5px 4px 12px; border: 1px solid #b9dfcd; border-radius: 8px; background: #f0faf4; color: #174c34; text-align: left; }
-.publisher-follow-copy { display: flex; align-items: baseline; flex-wrap: nowrap; gap: 8px; min-width: 0; padding-block: 2px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
-.publisher-follow-copy::-webkit-scrollbar { display: none; }
-.publisher-follow-copy > * { flex-shrink: 0; }
+.publisher-follow-copy { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0; padding-block: 2px; white-space: normal; }
+.publisher-follow-copy > * { max-width: 100%; overflow-wrap: anywhere; }
 .publisher-follow-hint { font-size: 10px; line-height: 1.5; font-weight: 400; color: #4e7863; }
 .publisher-follow-label { font-size: 11px; font-weight: 400; color: #4e7863; }
 .publisher-follow-copy > strong { font-size: 13px; line-height: 1.5; font-weight: 550; user-select: text; }
@@ -831,7 +840,10 @@ th.quota-cell.sorted { background: #d7e6ff; }
   .workspace-header { position: relative; }
   .topbar .publisher-follow { display: none; }
   .mobile-publisher { display: block; flex-basis: 100%; min-width: 0; width: 100%; }
-  .mobile-publisher .publisher-follow { margin: 0; }
+  .mobile-publisher .publisher-follow { margin: 0; padding: 12px; }
+  .mobile-publisher .publisher-follow-copy { flex: 1; }
+  .mobile-publisher .publisher-follow-hint { flex-basis: 100%; font-size: 11px; }
+  .mobile-publisher .publisher-follow-button { min-height: 44px; }
   .page-heading { margin-bottom: 12px; gap: 8px; }
   .page-heading h1 { font-size: 21px; }
   .page-heading .eyebrow { display: none; }
@@ -883,8 +895,10 @@ th.quota-cell.sorted { background: #d7e6ff; }
   .fund-group-toggle .group-share-rule, .fund-group-toggle .group-fee { display: none; }
   .group-expand { grid-column: 3; grid-row: 1 / 3; font-size: 0; }
   .mobile-group-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px; color: #526982; font-size: 12px; background: #f8fbff; }
-  .group-periods { padding: 8px 12px; }
-  .group-periods small { flex-basis: auto; }
+  .group-periods { display: grid; gap: 12px; padding: 8px 12px 12px; }
+  .group-periods > span { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 10px; align-items: baseline; }
+  .group-periods strong { text-align: right; }
+  .group-periods small { grid-column: 1 / -1; }
   .group-detail-note { padding-bottom: 8px; font-size: 11px; }
   .page-data-details { border-top: 1px solid var(--line); margin-top: 12px; }
   .page-data-details .catalog-caption { margin-top: 0; }

@@ -130,37 +130,59 @@ export async function syncNotices(store, fund, metrics, providers = { fetchNotic
 
 export async function synchronize(store, mail, options = {}) {
   if (!store.acquireLease('synchronize')) return { skipped: true, reason: '已有同步任务运行' };
+  const tasks = { discoverFunds, getCatalog, fetchMarket, fetchGildata, gildataConfigured, syncNotices, syncAnalytics, syncChangeHistory, backfillQuotas, ...options.tasks };
   const startedAt = new Date().toISOString();
-  const metrics = { startedAt, status: 'running', marketSuccess: 0, marketErrors: 0, gildataSuccess: 0, gildataErrors: 0, noticesDiscovered: 0, noticesParsed: 0, pendingReview: 0, noticeErrors: 0, errors: [] };
-  store.setMeta('lastRun', metrics);
+  const metrics = { startedAt, status: 'running', phase: 'discovery', completed: 0, total: 0, marketSuccess: 0, marketErrors: 0, gildataSuccess: 0, gildataErrors: 0, noticesDiscovered: 0, noticesParsed: 0, pendingReview: 0, noticeErrors: 0, errors: [] };
+  const progress = () => store.setMeta('lastRun', { ...metrics });
+  const phase = (name, total = 0) => { Object.assign(metrics, { phase: name, completed: 0, total }); progress(); };
+  async function saveMarket(refreshed) {
+    const { snapshot } = refreshed;
+    const dir = path.join(store.directory, 'market'); await fs.mkdir(dir, { recursive: true, mode: 0o700 });
+    await fs.writeFile(path.join(dir, snapshot.code + '.json'), JSON.stringify(snapshot), { mode: 0o600 });
+    store.saveSnapshot(snapshot);
+    if (refreshed.updated.length) store.setMeta('marketUpdatedAt', new Date().toISOString());
+  }
+  function finishMarket(fund, refreshed) {
+    store.setMeta(`sourceHealth:${fund.code}`, { checkedAt: new Date().toISOString(), diagnostics: refreshed.diagnostics, unresolved: refreshed.unresolved });
+    if (refreshed.gildataSuccess) metrics.gildataSuccess++;
+    if (refreshed.diagnostics.some(d => d.source === 'gildata')) metrics.gildataErrors++;
+    if (refreshed.updated.length) metrics.marketSuccess++;
+    if (refreshed.unresolved.length) {
+      metrics.marketErrors++;
+      metrics.errors.push({ code: fund.code, stage: 'market', message: '部分数据暂未刷新，保留各字段原始更新时间', fields: refreshed.unresolved });
+    }
+  }
+  progress();
   try {
     if (!options.noticesOnly) {
-      const discovery = await discoverFunds(store);
+      const discovery = await tasks.discoverFunds(store);
       metrics.discoveryStatus = discovery.status; metrics.fundsAdded = discovery.added.length;
     }
-    const catalog = getCatalog(store);
-    if (!options.noticesOnly) await syncAnalytics(store, catalog);
-    await syncChangeHistory(store, catalog);
-    await backfillQuotas(store, catalog);
+    const catalog = tasks.getCatalog(store);
+    // Capture the published baseline before any partial results become visible.
     const before = new Map(catalog.map(f => [f.code, store.getMeta(`published:${f.code}`) || currentFund(store, f)]));
-    await mapLimit(catalog, 3, async fund => {
-      if (!options.noticesOnly) {
-        try {
-          const refreshed = await refreshFundData(fund, store.snapshot(fund.code), { market: fetchMarket, gildata: fetchGildata, enabled: gildataConfigured() });
-          const { snapshot } = refreshed;
-          store.setMeta(`sourceHealth:${fund.code}`, { checkedAt: new Date().toISOString(), diagnostics: refreshed.diagnostics, unresolved: refreshed.unresolved });
-          if (refreshed.gildataSuccess) metrics.gildataSuccess++;
-          if (refreshed.diagnostics.some(d=>d.source==='gildata')) metrics.gildataErrors++;
-          if (refreshed.unresolved.length) { metrics.marketErrors++; metrics.errors.push({code:fund.code,stage:'market',message:'部分数据暂未刷新，保留各字段原始更新时间',fields:refreshed.unresolved}); }
-          const dir = path.join(store.directory, 'market'); await fs.mkdir(dir, { recursive: true, mode: 0o700 });
-          await fs.writeFile(path.join(dir, fund.code + '.json'), JSON.stringify(snapshot), { mode: 0o600 });
-          store.saveSnapshot(snapshot); if (refreshed.updated.length) metrics.marketSuccess++;
-        } catch { metrics.marketErrors++; metrics.errors.push({ code: fund.code, stage: 'market', message: '数据更新失败，保留上次成功值及其时间' }); }
-      }
-      try { if (fund.venue !== 'etf') await syncNotices(store, fund, metrics); }
+    const primary = new Map(), useGildata = !options.noticesOnly && tasks.gildataConfigured();
+    if (!options.noticesOnly) {
+      phase('market', catalog.length);
+      await mapLimit(catalog, 3, async fund => {
+        const now = new Date();
+        // Retain this settled result for enrichment; never fetch Tiantian twice.
+        const market = Promise.resolve().then(() => tasks.fetchMarket(fund));
+        primary.set(fund.code, { market, now });
+        const refreshed = await refreshFundData(fund, store.snapshot(fund.code), { market: () => market, enabled: false, now });
+        await saveMarket(refreshed);
+        if (!useGildata) finishMarket(fund, refreshed);
+        metrics.completed++; progress();
+      });
+    }
+    const otc = catalog.filter(f => f.venue !== 'etf');
+    phase('notices', otc.length);
+    await mapLimit(otc, 3, async fund => {
+      try { await tasks.syncNotices(store, fund, metrics); }
       catch { metrics.noticeErrors++; metrics.errors.push({ code: fund.code, stage: 'notices', message: '公告列表更新失败，将重试' }); }
-      store.setMeta('lastRun', { ...metrics });
+      metrics.completed++; progress();
     });
+    // Current quotas and observations are durable before slower enrichment/history.
     for (const fund of catalog) {
       const after = currentFund(store, fund);
       // First observation creates a baseline, never a "quota increased" email storm.
@@ -168,17 +190,31 @@ export async function synchronize(store, mail, options = {}) {
       recordQuotaDay(store, after);
       savePublishedBaseline(store, fund.code, after);
     }
-    if (metrics.marketSuccess) store.setMeta('marketUpdatedAt', new Date().toISOString());
+    if (useGildata) {
+      phase('performance', catalog.length);
+      await mapLimit(catalog, 3, async fund => {
+        const { market, now } = primary.get(fund.code);
+        // Merge against the saved snapshot so a slow source cannot roll back newer fields.
+        const refreshed = await refreshFundData(fund, store.snapshot(fund.code), { market: () => market, gildata: tasks.fetchGildata, enabled: true, now });
+        await saveMarket(refreshed);
+        finishMarket(fund, refreshed);
+        metrics.completed++; progress();
+      });
+    }
+    if (!options.noticesOnly) { phase('analytics'); await tasks.syncAnalytics(store, catalog); }
+    phase('history'); await tasks.syncChangeHistory(store, catalog);
+    phase('backfill'); await tasks.backfillQuotas(store, catalog);
     metrics.status = metrics.marketErrors || metrics.noticeErrors || (metrics.discoveryStatus && metrics.discoveryStatus !== 'success') ? 'partial' : 'success';
     metrics.finishedAt = new Date().toISOString();
-    store.setMeta('lastRun', metrics);
+    progress();
     if (metrics.status === 'success' && !options.noticesOnly) { store.setMeta('lastDailySuccess', chinaDate()); if (new Date() >= new Date(`${chinaDate()}T16:30:00+08:00`)) store.setMeta('lastEveningSuccess', chinaDate()); }
     store.setMeta('lastAttemptAt', metrics.finishedAt);
     await mail.deliver();
     return metrics;
-  } catch { metrics.status = 'failed'; metrics.finishedAt = new Date().toISOString(); store.setMeta('lastRun', metrics); store.setMeta('lastAttemptAt', metrics.finishedAt); return metrics; }
+  } catch { metrics.status = 'failed'; metrics.finishedAt = new Date().toISOString(); progress(); store.setMeta('lastAttemptAt', metrics.finishedAt); return metrics; }
   finally { store.releaseLease('synchronize'); }
 }
+
 function savePublishedBaseline(store, code, after) {
   const prior = store.getMeta(`published:${code}`);
   store.setMeta(`published:${code}`, { ...after, agency: after.agency.status === 'unknown' && prior?.agency ? prior.agency : after.agency, direct: after.direct.status === 'unknown' && prior?.direct ? prior.direct : after.direct });

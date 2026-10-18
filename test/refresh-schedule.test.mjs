@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nextDashboardRefresh} from '../shared/refresh-schedule.mjs';
+import {nextDashboardRefresh, dashboardRefreshDelay} from '../shared/refresh-schedule.mjs';
 import {startScheduler} from '../server/service.mjs';
 import {CHANGE_HISTORY_VERSION} from '../server/change-history.mjs';
 
@@ -11,6 +11,28 @@ test('page reads are scheduled at the two Beijing slots, with no repeat at the e
  assert.equal(next('2026-10-18T16:30:00+08:00'),'2026-10-18T23:30:00.000Z');
  assert.equal(next('2026-10-18T08:00:00+08:00','09:00'),'2026-10-18T01:00:00.000Z');
  assert.equal(next('2026-10-18T08:00:00+08:00','invalid'),'2026-10-18T08:30:00.000Z');
+});
+
+test('active sync and transient fetch failures refresh automatically, then return to daily slots',()=>{
+ const now=Date.parse('2026-10-18T21:00:00+08:00');
+ const meta={dailySyncTime:'07:30',lastRun:{status:'running',startedAt:'2026-10-18T20:00:00+08:00'}};
+ assert.equal(dashboardRefreshDelay(meta,now),15000);
+ assert.equal(dashboardRefreshDelay(undefined,now),15000);
+ meta.lastRun.status='success';
+ assert.equal(dashboardRefreshDelay(meta,now),nextDashboardRefresh(now)-now);
+ assert.equal(dashboardRefreshDelay(meta,now,true),15000);
+ meta.lastRun.status='partial';
+ assert.equal(dashboardRefreshDelay(meta,now),nextDashboardRefresh(now)-now);
+});
+
+test('page read just before the scheduler starts does not miss the entire sync',()=>{
+ const meta={dailySyncTime:'09:00',lastRun:{status:'success',startedAt:'2026-10-17T16:30:00+08:00'}};
+ const now=Date.parse('2026-10-18T09:00:00+08:00');
+ assert.equal(dashboardRefreshDelay(meta,now),15000);
+ assert.equal(dashboardRefreshDelay(meta,now+60000),15000);
+ assert.equal(dashboardRefreshDelay(meta,now+120000),nextDashboardRefresh(now+120000,'09:00')-now-120000);
+ meta.lastRun.startedAt='2026-10-18T09:00:00+08:00';
+ assert.equal(dashboardRefreshDelay(meta,now),nextDashboardRefresh(now,'09:00')-now);
 });
 
 test('scheduler does not inspect fund rules on ordinary minute ticks; inspects them when the evening sync is due',async t=>{

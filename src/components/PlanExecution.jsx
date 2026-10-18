@@ -1,7 +1,7 @@
 import {STABILITY_WINDOW_DAYS} from '../../shared/config.mjs';
 import React, {useId, useState} from 'react';
 import {planContributions} from '../plan-contributions.mjs';
-import {ChevronDown, ChevronRight} from 'lucide-react';
+import {ChevronDown, ChevronRight, TriangleAlert} from 'lucide-react';
 import {feePercent} from '../../shared/fees.mjs';
 const money=n=>`¥${new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2}).format(n)}`;
 const indexName=key=>key==='nasdaq'?'纳斯达克100':'标普500';
@@ -56,7 +56,9 @@ export default function PlanExecution({result,funds,onDetail}) {
       {contributions.map(a=><ExecutionFund key={a.code} contribution={a} {...{result,funds,onDetail}}/>)}
       <div className="execution-grand-total"><span>已安排合计</span><strong>{money(scheduledAmount)}</strong></div>
     </div>
-    {result.allocations.filter(a=>a.blocked && a.amount>0).map(a=><p key={a.index} className="plan-blocked">{indexName(a.index)}：{money(a.amount)} 暂无可执行计划，等待额度开放。</p>)}
-    {result.unallocated>0&&<p className="plan-blocked">另有 {money(result.unallocated)} 暂无额度，未安排购买。</p>}
+    {result.allocations.filter(a=>a.blocked && a.amount>0).map(a=><div key={a.index} className="plan-blocked" role="note">
+      <TriangleAlert size={20} aria-hidden="true"/><div><strong>{indexName(a.index)}：{money(a.amount)}</strong><p>暂无可执行计划，等待额度开放。</p></div>
+    </div>)}
+    {result.unallocated>0&&<div className="plan-blocked" role="note"><TriangleAlert size={20} aria-hidden="true"/><div><strong>另有 {money(result.unallocated)} 未安排购买</strong><p>暂无额度，等待额度开放。</p></div></div>}
   </div>;
 }

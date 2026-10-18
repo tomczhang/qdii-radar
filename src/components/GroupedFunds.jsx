@@ -44,7 +44,7 @@ function GroupRow({group, sort, renderShares}) {
     <div id={id} hidden={!expanded} className="fund-group-details">
       {expanded&&<>
         <div className="mobile-group-facts"><span>份额规则：<RuleBadge badge={shareRule}/>{shareRule.label==='待确认' && '（按默认口径计算）'}</span><span>年度费率：{rate}{rates.length<group.members.length && ' · 部分费率待更新'}</span></div>
-        <div className="group-periods"><span>本组合计 · 过去{STABILITY_WINDOW_DAYS}个交易日 <strong>{money(group.history.amount)}</strong><small>{group.history.complete?'完整累计':'已知累计 · 部分历史待核验'}</small></span><span>未来{STABILITY_WINDOW_DAYS}个交易日 <strong>{money(group.total.amount==null?null:group.total.amount*STABILITY_WINDOW_DAYS)}</strong><small>假设当前额度不变，非承诺额度</small></span></div>
+        <div className="group-periods"><span><span>本组合计 · 过去{STABILITY_WINDOW_DAYS}个交易日</span><strong>{money(group.history.amount)}</strong><small>{group.history.complete?'完整累计':'已知累计 · 部分历史待核验'}</small></span><span><span>未来{STABILITY_WINDOW_DAYS}个交易日</span><strong>{money(group.total.amount==null?null:group.total.amount*STABILITY_WINDOW_DAYS)}</strong><small>假设当前额度不变，非承诺额度</small></span></div>
         <p className="group-detail-note">下方是每个份额单独购买的上限，共用额度不能重复相加。点击费率、渠道或基金名称查看公告依据。桌面表格可左右滚动。</p>
         {renderShares(sortGroupMembers(group.members,sort))}
       </>}
