@@ -129,3 +129,10 @@ test('日增长率缺失时不插值造走势，只保留最近连续净值窗�
   assert.deepEqual(result.trendDates, ['2026-10-11', '2026-10-12', '2026-10-13']);
   assert.ok(result.trendNote);
 });
+
+test('渠道排除条款不能误读为被排除渠道的限额', () => {
+  const text='基金代码000834。自2026年10月15日起调整大额申购。其他需要提示的事项：本基金在所有销售机构（不含本公司直销）单日单个基金账户申购限额为100元。本次调整为保护投资者利益，赎回业务照常办理，具体确认以基金登记结算结果为准。';
+  const parsed=parseQuotaNotice({...context,title:'调整大额申购业务公告',text});
+  assert.equal(parsed.status,'pending_review');
+  assert.equal(parsed.rules.length,0);
+});

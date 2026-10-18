@@ -1,0 +1,1 @@
+export const STABILITY_WINDOW_DAYS = 20;

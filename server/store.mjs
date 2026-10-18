@@ -16,6 +16,8 @@ export function openStore(location = process.env.DATA_DIR || '.data') {
     CREATE TABLE IF NOT EXISTS subscriptions (id TEXT PRIMARY KEY, owner TEXT NOT NULL, email TEXT NOT NULL, code TEXT NOT NULL, payload TEXT NOT NULL, verified INTEGER NOT NULL DEFAULT 0, verify_hash TEXT, unsubscribe_hash TEXT, expires_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS subscription_owner ON subscriptions(owner);
     CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, subscription_id TEXT NOT NULL, state TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, next_at TEXT NOT NULL, payload TEXT NOT NULL, error TEXT, sent_at TEXT);
+    CREATE TABLE IF NOT EXISTS quota_daily (code TEXT NOT NULL, channel TEXT NOT NULL, date TEXT NOT NULL, observed_at TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(code,channel,date));
+    CREATE TABLE IF NOT EXISTS quota_estimates (code TEXT NOT NULL, channel TEXT NOT NULL, date TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(code,channel,date));
     CREATE TABLE IF NOT EXISTS leases (name TEXT PRIMARY KEY, expires INTEGER NOT NULL);
   `);
   const outboxColumns = new Set(db.prepare('PRAGMA table_info(outbox)').all().map(c => c.name));
@@ -29,6 +31,10 @@ export function openStore(location = process.env.DATA_DIR || '.data') {
     getMeta(key) { const r = db.prepare('SELECT value FROM meta WHERE key=?').get(key); return r ? JSON.parse(r.value) : null; },
     setMeta(key, value) { db.prepare('INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(key, JSON.stringify(value)); },
     snapshot(code) { return parse(db.prepare('SELECT * FROM snapshots WHERE code=?').get(code)); },
+    saveQuotaDay(value) { db.prepare('INSERT INTO quota_daily VALUES(?,?,?,?,?) ON CONFLICT(code,channel,date) DO UPDATE SET payload=excluded.payload,observed_at=excluded.observed_at WHERE excluded.observed_at>=quota_daily.observed_at').run(value.code, value.channel, value.date, value.observedAt, JSON.stringify(value)); },
+    quotaDays(code, from, to) { return db.prepare('SELECT payload FROM quota_daily WHERE code=? AND date>=? AND date<=? ORDER BY date').all(code, from, to).map(parse); },
+    replaceQuotaEstimates(code, rows) { db.exec('BEGIN IMMEDIATE'); try { db.prepare('DELETE FROM quota_estimates WHERE code=?').run(code); const insert=db.prepare('INSERT INTO quota_estimates VALUES(?,?,?,?)'); for(const row of rows) insert.run(code,row.channel,row.date,JSON.stringify(row)); db.exec('COMMIT'); } catch(error) { db.exec('ROLLBACK'); throw error; } },
+    quotaEstimates(code, from, to) { return db.prepare('SELECT payload FROM quota_estimates WHERE code=? AND date>=? AND date<=? ORDER BY date').all(code,from,to).map(parse); },
     snapshots() { return db.prepare('SELECT * FROM snapshots').all().map(parse); },
     saveSnapshot(value) { db.prepare('INSERT INTO snapshots VALUES(?,?,?) ON CONFLICT(code) DO UPDATE SET payload=excluded.payload,observed_at=excluded.observed_at').run(value.code, JSON.stringify(value), value.observedAt); },
     addRule(rule) { const id = rule.id || digest(JSON.stringify([rule.code, rule.channel, rule.effectiveAt, rule.sourceUrl, rule.status, rule.limit])); db.prepare('INSERT OR IGNORE INTO rules VALUES(?,?,?,?,?,?)').run(id, rule.code, rule.channel, new Date(rule.effectiveAt).toISOString(), JSON.stringify({ ...rule, id }), new Date().toISOString()); return id; },
@@ -38,6 +44,7 @@ export function openStore(location = process.env.DATA_DIR || '.data') {
     pendingNotices(code) { return db.prepare("SELECT * FROM notices WHERE code=? AND state IN ('pending_review','fetch_error') ORDER BY published_at DESC").all(code).map(parse); },
     notices(limit = 100) { return db.prepare('SELECT * FROM notices ORDER BY published_at DESC LIMIT ?').all(limit).map(parse); },
     addEvent(event) { const result = db.prepare('INSERT OR IGNORE INTO events VALUES(?,?,?,?)').run(event.id, event.code, event.createdAt, JSON.stringify(event)); return !!result.changes; },
+    eventsBetween(from, to) { return db.prepare(`SELECT payload FROM events WHERE julianday(COALESCE(json_extract(payload, '$.effectiveAt'),created_at))>=julianday(?) AND julianday(COALESCE(json_extract(payload, '$.effectiveAt'),created_at))<=julianday(?) ORDER BY julianday(COALESCE(json_extract(payload, '$.effectiveAt'),created_at)) DESC,id DESC`).all(from, to).map(parse); },
     events(limit = 100) { return db.prepare('SELECT * FROM events ORDER BY created_at DESC LIMIT ?').all(limit).map(parse); },
     acquireLease(name, duration = 30 * 60 * 1000) { return !!db.prepare('INSERT INTO leases VALUES(?,?) ON CONFLICT(name) DO UPDATE SET expires=excluded.expires WHERE leases.expires<?').run(name, Date.now() + duration, Date.now()).changes; },
     releaseLease(name) { db.prepare('DELETE FROM leases WHERE name=?').run(name); },

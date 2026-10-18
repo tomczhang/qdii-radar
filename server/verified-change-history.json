@@ -1,0 +1,768 @@
+[
+  {
+    "noticeId": "AN202610121830361740",
+    "code": "270042",
+    "textHash": "ae2ae47a94ff5f30c21a9611c3849a018e55f24d1cd6f202052851f5d74af476",
+    "effectiveAt": "2026-10-13T00:00:00+08:00",
+    "type": "resume",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "10月13日起人民币A/C恢复至10元，F恢复至100元；跨渠道累计，各份额分别计算。"
+  },
+  {
+    "noticeId": "AN202610121830361740",
+    "code": "006479",
+    "textHash": "ae2ae47a94ff5f30c21a9611c3849a018e55f24d1cd6f202052851f5d74af476",
+    "effectiveAt": "2026-10-13T00:00:00+08:00",
+    "type": "resume",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "10月13日起人民币A/C恢复至10元，F恢复至100元；跨渠道累计，各份额分别计算。"
+  },
+  {
+    "noticeId": "AN202610121830361740",
+    "code": "021778",
+    "textHash": "ae2ae47a94ff5f30c21a9611c3849a018e55f24d1cd6f202052851f5d74af476",
+    "effectiveAt": "2026-10-13T00:00:00+08:00",
+    "type": "resume",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "evidence": "10月13日起人民币A/C恢复至10元，F恢复至100元；跨渠道累计，各份额分别计算。"
+  },
+  {
+    "noticeId": "AN202610141830429076",
+    "code": "270042",
+    "textHash": "6cac8808c812f9d5cff4bbb4b1d14b9bd9121987f670050e55970281eb17b8f0",
+    "effectiveAt": "2026-10-15T00:00:00+08:00",
+    "type": "pause",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "10月15日起暂停人民币A/C/F申购；此前额度据10月13日恢复公告。"
+  },
+  {
+    "noticeId": "AN202610141830429076",
+    "code": "006479",
+    "textHash": "6cac8808c812f9d5cff4bbb4b1d14b9bd9121987f670050e55970281eb17b8f0",
+    "effectiveAt": "2026-10-15T00:00:00+08:00",
+    "type": "pause",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "10月15日起暂停人民币A/C/F申购；此前额度据10月13日恢复公告。"
+  },
+  {
+    "noticeId": "AN202610141830429076",
+    "code": "021778",
+    "textHash": "6cac8808c812f9d5cff4bbb4b1d14b9bd9121987f670050e55970281eb17b8f0",
+    "effectiveAt": "2026-10-15T00:00:00+08:00",
+    "type": "pause",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "10月15日起暂停人民币A/C/F申购；此前额度据10月13日恢复公告。"
+  },
+  {
+    "noticeId": "AN202610141830429114",
+    "code": "019547",
+    "textHash": "e79574fd8f9bc5f6a3c6ff911b5af895b809cffbc4b8fc19aafe13b2e335f1e5",
+    "effectiveAt": "2026-10-14T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "10月14日起暂停A/C申购。此前代销按6月10日规则、直销按9月2日规则，均为每日10元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202606091823377663",
+        "textHash": "519e2d52f8f65b658c5d32358f657067074dabefd4367cb00440dab9a37d0342",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202606091823377663_1.pdf"
+      },
+      {
+        "noticeId": "AN202609011828847866",
+        "textHash": "37967928cae553ed99bfeacd5ba67cebf318f09f98fc5945066c96118b722208",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828847866_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202610141830429114",
+    "code": "019548",
+    "textHash": "e79574fd8f9bc5f6a3c6ff911b5af895b809cffbc4b8fc19aafe13b2e335f1e5",
+    "effectiveAt": "2026-10-14T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "10月14日起暂停A/C申购。此前代销按6月10日规则、直销按9月2日规则，均为每日10元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202606091823377663",
+        "textHash": "519e2d52f8f65b658c5d32358f657067074dabefd4367cb00440dab9a37d0342",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202606091823377663_1.pdf"
+      },
+      {
+        "noticeId": "AN202609011828847866",
+        "textHash": "37967928cae553ed99bfeacd5ba67cebf318f09f98fc5945066c96118b722208",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828847866_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609221829732369",
+    "code": "019524",
+    "textHash": "414da0bcb26830d4c6fca228c574e3effab6572905042cd78f7da66ffd6b1a9a",
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 5
+    },
+    "evidence": "正文明确自9月22日起由10元调整为5元，A/C/I合并计算。表格代码01952 5、0 22664为PDF断字。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609221829732369",
+    "code": "019525",
+    "textHash": "414da0bcb26830d4c6fca228c574e3effab6572905042cd78f7da66ffd6b1a9a",
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 5
+    },
+    "evidence": "正文明确自9月22日起由10元调整为5元，A/C/I合并计算。表格代码01952 5、0 22664为PDF断字。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609221829732369",
+    "code": "022664",
+    "textHash": "414da0bcb26830d4c6fca228c574e3effab6572905042cd78f7da66ffd6b1a9a",
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 5
+    },
+    "evidence": "正文明确自9月22日起由10元调整为5元，A/C/I合并计算。表格代码01952 5、0 22664为PDF断字。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609241829831132",
+    "code": "019736",
+    "textHash": "5da11ed4369c01fe2476dbe08c45197565feb066e8240735c4035110b86dfc21",
+    "effectiveAt": "2026-09-28T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 200
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "以公告明确的9月28日申请所属交易日生效；9月24日15:00后提交的申请适用该交易日规则。每类份额10元；此前9月8日规则为200元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609071829086210",
+        "textHash": "e3d95da32b1873847a90a41b60e6addf6d69cc91ce09382c9beefaea29c4c7d7",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609071829086210_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609241829831132",
+    "code": "019737",
+    "textHash": "5da11ed4369c01fe2476dbe08c45197565feb066e8240735c4035110b86dfc21",
+    "effectiveAt": "2026-09-28T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 200
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "以公告明确的9月28日申请所属交易日生效；9月24日15:00后提交的申请适用该交易日规则。每类份额10元；此前9月8日规则为200元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609071829086210",
+        "textHash": "e3d95da32b1873847a90a41b60e6addf6d69cc91ce09382c9beefaea29c4c7d7",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609071829086210_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609221829740223",
+    "code": "160213",
+    "textHash": "1f9fb9190a2bd71ea73245a32a5cb057d806fe1dc661fb6fc26b84d3524df796",
+    "effectiveAt": "2026-09-28T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月28日起暂停；9月24日15点之后提交的申请适用该交易日安排。原9月1日限额为每日100元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609011828844748",
+        "textHash": "f6ed843d3e98e3a53cd27f92e8b12ebc675b67e546c2796bc5894ff02ba95666",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828844748_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609221829742553",
+    "code": "018966",
+    "textHash": "c96ac00a1aa2a480de4eed9d3e243d161e79ee786339b457132a2f253c7b3e61",
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 1000
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "仅直销由1000元降至10元，正文所列9月14日是原规则日期；代销10元保持不变。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609121829300978",
+        "textHash": "c1fb7be1ebd6231072c1a6c9eca8a71c05335496fdda732c3336ca180017512a",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609121829300978_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609221829742553",
+    "code": "018967",
+    "textHash": "c96ac00a1aa2a480de4eed9d3e243d161e79ee786339b457132a2f253c7b3e61",
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 1000
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "仅直销由1000元降至10元，正文所列9月14日是原规则日期；代销10元保持不变。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609121829300978",
+        "textHash": "c1fb7be1ebd6231072c1a6c9eca8a71c05335496fdda732c3336ca180017512a",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609121829300978_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609221829742553",
+    "code": "021773",
+    "textHash": "c96ac00a1aa2a480de4eed9d3e243d161e79ee786339b457132a2f253c7b3e61",
+    "effectiveAt": "2026-09-22T00:00:00+08:00",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 1000
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "evidence": "仅直销由1000元降至10元，正文所列9月14日是原规则日期；代销10元保持不变。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609121829300978",
+        "textHash": "c1fb7be1ebd6231072c1a6c9eca8a71c05335496fdda732c3336ca180017512a",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609121829300978_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609121829300978",
+    "code": "018966",
+    "textHash": "c1fb7be1ebd6231072c1a6c9eca8a71c05335496fdda732c3336ca180017512a",
+    "effectiveAt": "2026-09-14T00:00:00+08:00",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 1000
+    },
+    "evidence": "人民币A/C/E直销自9月14日起由10元调整为1000元；旧日期为9月4日，不是多阶段待生效规则。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609121829300978",
+    "code": "018967",
+    "textHash": "c1fb7be1ebd6231072c1a6c9eca8a71c05335496fdda732c3336ca180017512a",
+    "effectiveAt": "2026-09-14T00:00:00+08:00",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 1000
+    },
+    "evidence": "人民币A/C/E直销自9月14日起由10元调整为1000元；旧日期为9月4日，不是多阶段待生效规则。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609121829300978",
+    "code": "021773",
+    "textHash": "c1fb7be1ebd6231072c1a6c9eca8a71c05335496fdda732c3336ca180017512a",
+    "effectiveAt": "2026-09-14T00:00:00+08:00",
+    "channel": "直销",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 1000
+    },
+    "evidence": "人民币A/C/E直销自9月14日起由10元调整为1000元；旧日期为9月4日，不是多阶段待生效规则。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609241829835607",
+    "code": "018966",
+    "textHash": "275d90f731e80ba14c5201b4dadb9046d67c3363be86c284951090b05c0a03c3",
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月24日起暂停申购；9月22日公告明确直销10元，代销沿用9月4日10元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609221829742553",
+        "textHash": "c96ac00a1aa2a480de4eed9d3e243d161e79ee786339b457132a2f253c7b3e61",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609221829742553_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609241829835607",
+    "code": "018967",
+    "textHash": "275d90f731e80ba14c5201b4dadb9046d67c3363be86c284951090b05c0a03c3",
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月24日起暂停申购；9月22日公告明确直销10元，代销沿用9月4日10元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609221829742553",
+        "textHash": "c96ac00a1aa2a480de4eed9d3e243d161e79ee786339b457132a2f253c7b3e61",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609221829742553_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609241829835607",
+    "code": "021773",
+    "textHash": "275d90f731e80ba14c5201b4dadb9046d67c3363be86c284951090b05c0a03c3",
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 10
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月24日起暂停申购；9月22日公告明确直销10元，代销沿用9月4日10元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609221829742553",
+        "textHash": "c96ac00a1aa2a480de4eed9d3e243d161e79ee786339b457132a2f253c7b3e61",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609221829742553_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609101829193908",
+    "code": "270042",
+    "textHash": "7dc35f7b7863524dda838d12b9e5e65ccdf0de1689684a0d1463eddb7156b384",
+    "effectiveAt": "2026-09-11T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "unknown",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 2
+    },
+    "evidence": "人民币A/C每日2元、F每日30元，跨渠道累计、各份额单独计算。原额度尚无本次核验依据。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609101829193908",
+    "code": "006479",
+    "textHash": "7dc35f7b7863524dda838d12b9e5e65ccdf0de1689684a0d1463eddb7156b384",
+    "effectiveAt": "2026-09-11T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "unknown",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 2
+    },
+    "evidence": "人民币A/C每日2元、F每日30元，跨渠道累计、各份额单独计算。原额度尚无本次核验依据。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609181829580913",
+    "code": "270042",
+    "textHash": "ffd23f9fc334b74bc1afa413b5825292e1ce59fbf1fe67d8711fbc8406a0c9a7",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 2
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起人民币份额暂停。此前按9月11日规则，A/C每日2元、F每日30元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609101829193908",
+        "textHash": "7dc35f7b7863524dda838d12b9e5e65ccdf0de1689684a0d1463eddb7156b384",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609101829193908_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609181829580913",
+    "code": "006479",
+    "textHash": "ffd23f9fc334b74bc1afa413b5825292e1ce59fbf1fe67d8711fbc8406a0c9a7",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 2
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起人民币份额暂停。此前按9月11日规则，A/C每日2元、F每日30元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609101829193908",
+        "textHash": "7dc35f7b7863524dda838d12b9e5e65ccdf0de1689684a0d1463eddb7156b384",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609101829193908_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609101829193908",
+    "code": "021778",
+    "textHash": "7dc35f7b7863524dda838d12b9e5e65ccdf0de1689684a0d1463eddb7156b384",
+    "effectiveAt": "2026-09-11T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "unknown",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 30
+    },
+    "evidence": "人民币A/C每日2元、F每日30元，跨渠道累计、各份额单独计算。原额度尚无本次核验依据。",
+    "beforeSources": []
+  },
+  {
+    "noticeId": "AN202609181829580913",
+    "code": "021778",
+    "textHash": "ffd23f9fc334b74bc1afa413b5825292e1ce59fbf1fe67d8711fbc8406a0c9a7",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 30
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起人民币份额暂停。此前按9月11日规则，A/C每日2元、F每日30元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609101829193908",
+        "textHash": "7dc35f7b7863524dda838d12b9e5e65ccdf0de1689684a0d1463eddb7156b384",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609101829193908_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609181829580336",
+    "code": "007721",
+    "textHash": "2f3b8352c423b8d779ffaee95e2b9050d35d29c7b81e7ff6263b180474bc8a1c",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起暂停；此前9月2日起恢复，每份额每日100元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609011828844257",
+        "textHash": "65c89ecbd17f1565b081761a4f43f918db880611e9537194fcb2b83b2bbec35a",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828844257_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609181829580336",
+    "code": "007722",
+    "textHash": "2f3b8352c423b8d779ffaee95e2b9050d35d29c7b81e7ff6263b180474bc8a1c",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起暂停；此前9月2日起恢复，每份额每日100元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609011828844257",
+        "textHash": "65c89ecbd17f1565b081761a4f43f918db880611e9537194fcb2b83b2bbec35a",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828844257_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609181829590491",
+    "code": "018043",
+    "textHash": "4664b3b1563186a8fbf27b5cef974086dc99897f885ac6f9faac37c5e3e1a61d",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起暂停；此前9月2日起恢复，每份额每日100元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609011828848127",
+        "textHash": "8e4e676c21b1edf255fc2647255c3de37505065a4a7ec10afba3170ff4dfe1a4",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828848127_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609181829590491",
+    "code": "018044",
+    "textHash": "4664b3b1563186a8fbf27b5cef974086dc99897f885ac6f9faac37c5e3e1a61d",
+    "effectiveAt": "2026-09-21T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "afterQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "evidence": "9月21日起暂停；此前9月2日起恢复，每份额每日100元。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202609011828848127",
+        "textHash": "8e4e676c21b1edf255fc2647255c3de37505065a4a7ec10afba3170ff4dfe1a4",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609011828848127_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609231829773864",
+    "code": "040046",
+    "textHash": "60e7f2112da6bb49a3254e3ae542b10c51ba171dd1cab67012cd3b3f7b79862f",
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 5
+    },
+    "evidence": "9月24日起直销与其他销售渠道均为5元。原7月23日规则为代销10元、直销100元，不合并成一个原额度。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202607211827178744",
+        "textHash": "da08f59ffed24d49d7cf980a5cd123fd513b1e8595567efa516f41f584fb5644",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202607211827178744_1.pdf"
+      }
+    ],
+    "beforeByChannel": {
+      "agency": {
+        "status": "open",
+        "limit": 10
+      },
+      "direct": {
+        "status": "open",
+        "limit": 100
+      }
+    }
+  },
+  {
+    "noticeId": "AN202609231829773864",
+    "code": "014978",
+    "textHash": "60e7f2112da6bb49a3254e3ae542b10c51ba171dd1cab67012cd3b3f7b79862f",
+    "effectiveAt": "2026-09-24T00:00:00+08:00",
+    "channel": "基金申购",
+    "beforeQuota": {
+      "status": "paused",
+      "limit": null
+    },
+    "afterQuota": {
+      "status": "open",
+      "limit": 5
+    },
+    "evidence": "9月24日起直销与其他销售渠道均为5元。原7月23日规则为代销10元、直销100元，不合并成一个原额度。",
+    "beforeSources": [
+      {
+        "noticeId": "AN202607211827178744",
+        "textHash": "da08f59ffed24d49d7cf980a5cd123fd513b1e8595567efa516f41f584fb5644",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202607211827178744_1.pdf"
+      }
+    ],
+    "beforeByChannel": {
+      "agency": {
+        "status": "open",
+        "limit": 10
+      },
+      "direct": {
+        "status": "open",
+        "limit": 100
+      }
+    }
+  },
+  {
+    "noticeId": "AN202609301830015639",
+    "code": "270042",
+    "textHash": "a1defac023c252977d082b77a3cb78e262302d646f8dacd48b904a8b2c7cb9a6",
+    "state": "ignored",
+    "reason": "仅重申9月18日公告的人民币份额暂停安排，无新增额度变化。"
+  },
+  {
+    "noticeId": "AN202609301830015639",
+    "code": "006479",
+    "textHash": "a1defac023c252977d082b77a3cb78e262302d646f8dacd48b904a8b2c7cb9a6",
+    "state": "ignored",
+    "reason": "仅重申9月18日公告的人民币份额暂停安排，无新增额度变化。"
+  },
+  {
+    "noticeId": "AN202609301830015639",
+    "code": "021778",
+    "textHash": "a1defac023c252977d082b77a3cb78e262302d646f8dacd48b904a8b2c7cb9a6",
+    "state": "ignored",
+    "reason": "仅重申9月18日公告的人民币份额暂停安排，无新增额度变化。"
+  }
+]

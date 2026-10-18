@@ -1,0 +1,56 @@
+import {nextDashboardRefresh} from '../shared/refresh-schedule.mjs';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import fs from 'node:fs/promises';
+const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const base=process.env.TEST_BASE_URL||'http://localhost:4392',browser=await chromium.launch({channel:'chrome',headless:true});
+const checks=[],errors=[],check=(name,ok)=>{assert.ok(ok,name);checks.push(name);};
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(e.message));
+ const data=await(await page.request.get(base+'/api/dashboard')).json(),sample=data.funds.find(f=>f.venue!=='etf');
+ const fixture={...data,funds:[{...sample,name:'抽屉测试基金',legalName:'抽屉测试基金',manager:'测试公司',index:'nasdaq',code:'drawer-test',share:'A',returns:{y1:10},dataIssues:[],fees:{annualRate:0.5,subscription:[{min:0,max:null,agencyRate:0,standardRate:0}]},direct:{status:'open',limit:100,scope:{mode:'independent'}},agency:{status:'paused',limit:null}}]};
+ await page.route('**/api/dashboard',r=>r.fulfill({json:fixture}));await page.clock.install();await page.goto(base,{waitUntil:'networkidle'});
+ await page.locator('.sidebar').getByRole('button',{name:'购买计算器',exact:true}).click();
+ const drawer=page.getByRole('dialog',{name:'设置投入条件'}),summary=page.locator('.calculator-conditions-summary');
+ check('First visit opens conditions as a modal drawer',await drawer.isVisible()&&await drawer.evaluate(el=>el.matches(':modal')));
+ check('All five condition steps are retained',await drawer.locator('.calculator-step').count()===5);
+ check('Background scrolling is locked',await page.evaluate(()=>document.body.style.overflow)==='hidden');
+ await page.keyboard.press('Escape');
+ check('Escape closes and returns focus to the entry',!await drawer.isVisible()&&await summary.getByRole('button',{name:'设置条件'}).evaluate(el=>el===document.activeElement));
+ await summary.getByRole('button',{name:'设置条件'}).click();
+ await page.getByLabel('每月投入预算（元）').fill('250');await page.getByRole('button',{name:'只买纳指',exact:true}).click();
+ await page.getByRole('button',{name:'生成方案'}).click();
+ check('Successful calculation closes drawer and shows full-width results',!await drawer.isVisible()&&await page.locator('.purchase-calculator').evaluate(el=>{const p=el.getBoundingClientRect();return ['.calculator-results','.calculator-final-plan'].every(s=>Math.abs(el.querySelector(s).getBoundingClientRect().width-p.width)<2);}));
+ check('Summary states committed budget and ratio',(await summary.innerText()).includes('¥250')&&(await summary.innerText()).includes('只买纳指'));
+ check('Body scrolling restored',await page.evaluate(()=>document.body.style.overflow)!=='hidden');
+ const saved=await page.evaluate(()=>localStorage.getItem('qdii-radar:purchase-calculator:v1'));
+ await summary.getByRole('button',{name:'修改条件'}).click();await page.getByLabel('每月投入预算（元）').fill('999');await page.getByRole('button',{name:'只买标普',exact:true}).click();await page.getByRole('button',{name:'清空',exact:true}).click();await page.keyboard.press('Escape');
+ check('Cancel restores original budget, allocation and result',(await summary.innerText()).includes('¥250')&&(await summary.innerText()).includes('只买纳指')&&(await page.locator('.execution-table tfoot').innerText()).includes('¥250'));
+ check('Cancelled edits never replace the saved snapshot',await page.evaluate(()=>localStorage.getItem('qdii-radar:purchase-calculator:v1'))===saved);
+ await summary.getByRole('button',{name:'修改条件'}).click();
+ check('Cancel also restores selected companies',await drawer.locator('.calculator-companies input:checked').count()===1);
+ await page.getByLabel('每月投入预算（元）').fill('0');await page.getByRole('button',{name:'生成方案'}).click();
+ check('Invalid input stays in drawer',await drawer.isVisible()&&!await page.getByLabel('每月投入预算（元）').evaluate(el=>el.validity.valid));
+ await page.getByLabel('每月投入预算（元）').fill('500');await page.getByRole('button',{name:'生成方案'}).click();
+ check('Recalculate applies updated amount',(await page.locator('.execution-table tfoot').innerText()).includes('¥500')&&!await drawer.isVisible());
+ await page.reload({waitUntil:'networkidle'});await page.locator('.sidebar').getByRole('button',{name:'购买计算器',exact:true}).click();
+ check('Valid snapshot opens directly into the plan',!await drawer.isVisible()&&(await summary.innerText()).includes('¥500'));
+ await fs.mkdir('outputs/visual-refresh',{recursive:true});
+ for(const width of [1440,768,390,320]){
+  await page.setViewportSize({width,height:width<600?700:1100});
+  check('Full-width plans fit '+width,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  if(width===1440||width===390){await summary.scrollIntoViewIfNeeded();await page.screenshot({path:`outputs/visual-refresh/calculator-full-plan-${width}.png`});}
+  await summary.getByRole('button',{name:'修改条件'}).click();
+  check('Drawer and submit fit '+width,await drawer.evaluate(el=>{const r=el.getBoundingClientRect(),b=el.querySelector('.calculate-button').getBoundingClientRect();return r.width<=innerWidth&&r.height<=innerHeight&&el.scrollWidth<=el.clientWidth+1&&b.top>=0&&b.bottom<=innerHeight;}));
+  await drawer.getByRole('button',{name:'关闭条件设置'}).focus();await page.keyboard.press('Shift+Tab');
+  check('Keyboard focus stays within drawer '+width,await drawer.evaluate(el=>el.contains(document.activeElement)));
+  if(width===1440||width===390)await page.screenshot({path:`outputs/visual-refresh/calculator-drawer-${width}.png`});
+  await page.getByRole('button',{name:'关闭条件设置'}).click();
+ }
+ fixture.funds[0].direct.limit=50;
+ const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/dashboard'));await page.clock.fastForward(nextDashboardRefresh(await page.evaluate(()=>Date.now())) - await page.evaluate(()=>Date.now()) + 1);await refreshed;
+ check('Changed quotas hide stale execution table',await page.locator('.calculator-final-plan').count()===0);
+ await page.getByRole('button',{name:'重新计算',exact:true}).click();check('Stale plan has direct re-edit path',await drawer.isVisible());await page.getByRole('button',{name:'生成方案'}).click();
+ check('Refresh uses updated quota',(await page.locator('.execution-regular').innerText()).includes('¥50'));
+ check('No runtime errors',errors.length===0);console.log(JSON.stringify({passed:checks.length,checks,errors},null,2));
+}finally{await browser.close();}

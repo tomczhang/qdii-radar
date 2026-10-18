@@ -36,6 +36,7 @@ export function parseQuotaNotice({ title, text, code, share, sourceUrl, publishe
   const t = text.replace(/\s+/g, '').replace(/[，]/g, ',').replace(/[（]/g, '(').replace(/[）]/g, ')');
   const pending = (reason) => ({ status: 'pending_review', reason, rules: [] });
   if (!isQuotaNotice(title)) return { status: 'ignored', rules: [], reason: '不涉及申购额度' };
+  if (/美元/.test(title) && !/人民币/.test(title)) return { status: 'ignored', rules: [], reason: '公告仅涉及美元份额，本看板跟踪人民币份额' };
   if (t.length < 100) return pending('正文不足，可能为扫描版PDF');
   if (!new RegExp(`(?<!\\d)${code}(?!\\d)`).test(text)) return pending('正文未明确包含该份额代码');
   if (/机构投资者|非个人投资者|特定投资者|部分销售|仅限.{0,20}直销|恢复.{0,20}20\d{2}年/.test(t)) return pending('包含投资者、渠道子类型或多阶段规则，需核验');
@@ -57,7 +58,7 @@ export function parseQuotaNotice({ title, text, code, share, sourceUrl, publishe
   const statements = body.split(/[。；]/).filter(s => /申购/.test(s) && /单日/.test(s) && /(?:不超过|调整为|限额|超过)/.test(s));
   const candidates = [];
   for (const statement of statements) {
-    if (/美元|机构投资者|除外|不受|但|原限额|原为/.test(statement)) continue;
+    if (/美元|机构投资者|除外|不受|不含(?![\d.])|不包括|之外|但|原限额|原为/.test(statement)) continue;
     const mentionedShares = [...statement.matchAll(/([ACDEFHI])(?:类|份额)/g)].map(m => m[1]);
     if (mentionedShares.length && !mentionedShares.includes(share)) continue;
     const amountMatches = [...statement.matchAll(/(?:不超过|调整为|限额(?:为)?|超过)([\d,]+(?:\.\d+)?)(万)?元/g)];

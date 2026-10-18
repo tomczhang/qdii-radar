@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { openStore } from './store.mjs';
 import { createMailService } from './mail.mjs';
-import { catalog, dashboard, seedRules, startScheduler, synchronize } from './service.mjs';
+import { getCatalog, dashboard, seedRules, startScheduler, synchronize } from './service.mjs';
 import { digest } from './domain.mjs';
 
 export async function createApplication({ store = openStore(), mail = createMailService(store), startJobs = true, development = process.env.NODE_ENV !== 'production' } = {}) {
@@ -49,11 +49,13 @@ export async function createApplication({ store = openStore(), mail = createMail
   }
   const subscriptionSchema = z.object({
     email: z.string().trim().email().max(254).transform(s => s.toLowerCase()),
-    code: z.string().refine(code => code === 'all' || catalog.some(f => f.code === code), '未知基金'),
+    code: z.string().refine(code => code === 'all' || getCatalog(store).some(f => f.code === code && f.venue !== 'etf'), '未知基金'),
     channels: z.array(z.enum(['agency', 'direct'])).min(1).max(2).transform(v => [...new Set(v)]),
     events: z.array(z.enum(['resume', 'increase', 'decrease'])).min(1).max(3).transform(v => [...new Set(v)]),
   }).strict();
   app.get('/api/health', (req, res) => res.json({ status: 'ok', mode: 'live', mailConfigured: mail.configured, lastRun: store.getMeta('lastRun')?.status || 'not_started' }));
+  // Public website ID only; credentials and usage events never pass through this endpoint.
+  app.get('/api/public-config', (req, res) => res.json({ umamiWebsiteId: development ? null : process.env.UMAMI_WEBSITE_ID || null }));
   app.get('/api/dashboard', (req, res) => res.json(dashboard(store, mail)));
   app.get('/api/subscriptions', (req, res) => res.json({ subscriptions: mail.list(req.owner), mailConfigured: mail.configured }));
   app.post('/api/subscriptions', rateLimit, (req, res) => { const data = subscriptionSchema.parse(req.body); const sub = mail.saveSubscription(req.owner, data); res.status(201).json(sub); mail.deliver().catch(() => {}); });
@@ -73,7 +75,7 @@ export async function createApplication({ store = openStore(), mail = createMail
   app.post('/api/subscriptions/verify', rateLimit, (req, res) => { const ok = mail.verify(req.body.token); res.status(ok ? 200 : 400).type('html').send(confirmationPage(ok ? '邮箱已确认' : '验证链接已失效', ok ? '<p>额度发生符合条件的变化时，将发送邮件。</p>' : '<p>请回到看板重新发送验证邮件。</p>')); });
   app.get('/unsubscribe', (req, res) => { const id = /^[a-f0-9]{32}$/.test(req.query.id || '') ? req.query.id : ''; const token = /^[a-f0-9]{64}$/.test(req.query.token || '') ? req.query.token : ''; res.type('html').send(confirmationPage('取消额度提醒', id && token ? `<form method="post" action="/api/unsubscribe"><input type="hidden" name="id" value="${id}"><input type="hidden" name="token" value="${token}"><p>取消后，这条订阅将不再收到邮件。</p><button>确认退订</button></form>` : '<p>退订链接无效。</p>')); });
   app.post('/api/unsubscribe', rateLimit, (req, res) => { const ok = mail.unsubscribe(req.body.id, req.body.token); res.status(ok ? 200 : 400).type('html').send(confirmationPage(ok ? '已退订' : '链接无效或已退订', '<p>你可以返回看板管理其他提醒。</p>')); });
-  app.get('/api/admin/status', admin, (req, res) => res.json({ lastRun: store.getMeta('lastRun'), mail: mail.status(), notices: store.notices().map(({ excerpt, ...n }) => n) }));
+  app.get('/api/admin/status', admin, (req, res) => res.json({ lastRun: store.getMeta('lastRun'), catalog: store.getMeta('catalog:lastDiscovery'), mail: mail.status(), notices: store.notices().map(({ excerpt, ...n }) => n) }));
   app.post('/api/admin/sync', admin, (req, res) => { res.status(202).json({ message: '同步任务已提交' }); synchronize(store, mail).catch(() => {}); });
   app.get('/api/admin/notices/:id/:code', admin, (req, res) => { const n = store.notice(req.params.id, req.params.code); res.status(n ? 200 : 404).json(n || { error: '公告不存在' }); });
   app.post('/api/admin/notices/:id/:code/review', admin, (req, res) => {

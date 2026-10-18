@@ -3,7 +3,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY index.html ./
+COPY public ./public
 COPY src ./src
+COPY shared ./shared
 RUN npm run build
 
 FROM node:24-bookworm-slim
@@ -13,6 +15,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev && mkdir -p .data && chown node:node .data
 COPY --from=build /app/dist ./dist
 COPY server ./server
+COPY shared ./shared
 USER node
 EXPOSE 4387
 VOLUME ["/app/.data"]

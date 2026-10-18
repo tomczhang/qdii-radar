@@ -83,18 +83,22 @@ export function mergeGildata(snapshot, data) {
   if (data.navAsOf >= (snapshot.navAsOf || '')) {
     for (const key of ['navAsOf','dailyChange','navSource','trendSource','trend','trendDates','trendNote']) merged[key] = data[key];
   }
+  merged.marketError = null;
   merged.marketSource = [...new Set([merged.performanceSource, merged.navSource, merged.trendSource])].join(' / ');
   return merged;
 }
-export async function fetchGildata(fund) {
+export async function callGildata(query) {
   const config = gildataConnection();
   if (!config) throw new Error('聚源尚未配置');
   const client = new Client({ name: 'qdii-quota-radar', version: '1.0.0' });
   const Transport = config.protocol === 'sse' ? SSEClientTransport : StreamableHTTPClientTransport;
   try {
     await client.connect(new Transport(config.url, { requestInit: { headers: config.headers, redirect: 'error' } }), { timeout: 30000 });
-    const response = await client.callTool({ name: 'FinQuery', arguments: { query: `仅查询人民币公募基金${fund.code}（${fund.name}${fund.share}），截至${chinaDate()}最近已公布的近一年、近三年、近五年累计收益率（非年化）、对应截止日期和该份额成立日期；另返回最近30个已公布交易日的复权单位净值及每日净值增长率。保留基金代码，输出阶段业绩表现、净值表现结构化表格。不要返回美元份额或其他基金。` } }, undefined, { timeout: 90000 });
-    return parseGildataResponse(response, fund);
+    return await client.callTool({ name: 'FinQuery', arguments: { query } }, undefined, { timeout: 90000 });
   } catch { throw new Error('聚源请求或数据校验失败'); }
   finally { await client.close().catch(() => {}); }
+}
+
+export async function fetchGildata(fund) {
+  return parseGildataResponse(await callGildata(`仅查询人民币公募基金${fund.code}（${fund.name}${fund.share}），截至${chinaDate()}最近已公布的近一年、近三年、近五年累计收益率（非年化）、对应截止日期和该份额成立日期；另返回最近30个已公布交易日的复权单位净值及每日净值增长率。保留基金代码，输出阶段业绩表现、净值表现结构化表格。不要返回美元份额或其他基金。`), fund);
 }

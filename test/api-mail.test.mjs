@@ -76,3 +76,20 @@ test('同邮箱全局与单基金订阅去重，修改收件人后取消旧事�
     assert.equal(store.db.prepare("SELECT state FROM outbox WHERE id LIKE 'event:%'").get().state, 'cancelled');
   } finally { store.close(); fs.rmSync(dir, { recursive: true, force: true }); delete process.env.MAIL_TRANSPORT; }
 });
+
+test('运行中新发现的份额可订阅，场内ETF拒绝场外额度订阅', async () => {
+  const dir=fs.mkdtempSync(path.join(tmpdir(),'radar-dynamic-api-'));
+  process.env.MAIL_TRANSPORT='disabled';
+  const store=openStore(dir),mail=createMailService(store);
+  const runtime=await createApplication({store,mail,startJobs:false,development:false});
+  const server=runtime.app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
+  const root=`http://127.0.0.1:${server.address().port}`;
+  try {
+    store.setMeta('catalog:funds',[{code:'029999',name:'新增纳斯达克100',share:'I',manager:'测试基金',index:'nasdaq',venue:'otc'}]);
+    const board=await(await fetch(root+'/api/dashboard')).json();
+    assert.ok(board.funds.some(f=>f.code==='029999'));
+    const post=code=>fetch(root+'/api/subscriptions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'test@example.test',code,channels:['direct'],events:['resume']})});
+    assert.equal((await post('029999')).status,201);
+    assert.equal((await post('513100')).status,400);
+  } finally {await new Promise(resolve=>server.close(resolve));await runtime.close();fs.rmSync(dir,{recursive:true,force:true});delete process.env.MAIL_TRANSPORT;}
+});

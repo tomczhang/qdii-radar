@@ -1,0 +1,260 @@
+[
+  {
+    "noticeId": "AN202607201827139668",
+    "code": "021000",
+    "channel": "direct",
+    "status": "open",
+    "limit": 200,
+    "effectiveAt": "2026-07-21T00:00:00+08:00",
+    "textHash": "3e58a0057cc1533ad3eaee52b0a2206729c4cc997cd76fbc181898d40ec7e168",
+    "evidence": "公告明确I类021000自2026年7月21日起，单日单个基金账户申购、定投、转换转入合计200元；个人与非个人适用同一上限，各份额单独计算。不据此推断代销平台销售资格。"
+  },
+  {
+    "noticeId": "AN202607091826830545",
+    "code": "019441",
+    "channel": "agency",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-07-09T00:00:00+08:00",
+    "textHash": "1233c647e16cec632a3d01e651d181914f64ab51d1b10adf1bcf335a7c3cd863",
+    "evidence": "全渠道每日每账户10元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202607091826830545",
+    "code": "019441",
+    "channel": "direct",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-07-09T00:00:00+08:00",
+    "textHash": "1233c647e16cec632a3d01e651d181914f64ab51d1b10adf1bcf335a7c3cd863",
+    "evidence": "全渠道每日每账户10元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202607091826830545",
+    "code": "019442",
+    "channel": "agency",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-07-09T00:00:00+08:00",
+    "textHash": "1233c647e16cec632a3d01e651d181914f64ab51d1b10adf1bcf335a7c3cd863",
+    "evidence": "全渠道每日每账户10元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202607091826830545",
+    "code": "019442",
+    "channel": "direct",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-07-09T00:00:00+08:00",
+    "textHash": "1233c647e16cec632a3d01e651d181914f64ab51d1b10adf1bcf335a7c3cd863",
+    "evidence": "全渠道每日每账户10元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202609081829134250",
+    "code": "019441",
+    "channel": "agency",
+    "status": "open",
+    "limit": 5000,
+    "effectiveAt": "2026-09-09T00:00:00+08:00",
+    "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+    "evidence": "代销每日5000元，直销每日20000元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202609081829134250",
+    "code": "019441",
+    "channel": "direct",
+    "status": "open",
+    "limit": 20000,
+    "effectiveAt": "2026-09-09T00:00:00+08:00",
+    "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+    "evidence": "代销每日5000元，直销每日20000元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202609081829134250",
+    "code": "019442",
+    "channel": "agency",
+    "status": "open",
+    "limit": 5000,
+    "effectiveAt": "2026-09-09T00:00:00+08:00",
+    "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+    "evidence": "代销每日5000元，直销每日20000元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202609081829134250",
+    "code": "019442",
+    "channel": "direct",
+    "status": "open",
+    "limit": 20000,
+    "effectiveAt": "2026-09-09T00:00:00+08:00",
+    "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+    "evidence": "代销每日5000元，直销每日20000元，A/C分别计算。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。"
+  },
+  {
+    "noticeId": "AN202609091829169340",
+    "code": "019441",
+    "channel": "agency",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-10T00:00:00+08:00",
+    "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+    "evidence": "全渠道（直销和代销）每日每账户100元，A/C分别计算；不可据此将直代额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 5000
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609081829134250",
+        "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609081829134250_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609091829169340",
+    "code": "019441",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-10T00:00:00+08:00",
+    "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+    "evidence": "全渠道（直销和代销）每日每账户100元，A/C分别计算；不可据此将直代额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 20000
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609081829134250",
+        "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609081829134250_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609091829169340",
+    "code": "019442",
+    "channel": "agency",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-10T00:00:00+08:00",
+    "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+    "evidence": "全渠道（直销和代销）每日每账户100元，A/C分别计算；不可据此将直代额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 5000
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609081829134250",
+        "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609081829134250_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609091829169340",
+    "code": "019442",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-10T00:00:00+08:00",
+    "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+    "evidence": "全渠道（直销和代销）每日每账户100元，A/C分别计算；不可据此将直代额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 20000
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609081829134250",
+        "textHash": "1e46dc565690bd05d4b69fd8a05daa427cca28403d6a8f9a2aa18d07ee89cc95",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609081829134250_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609231829774454",
+    "code": "019441",
+    "channel": "agency",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-09-23T00:00:00+08:00",
+    "textHash": "77161d76c57c658319dfb8cb78b8591d1b48a3332b4730d0c9d6517be653fcf3",
+    "evidence": "代销每日10元，直销每日100元；各渠道内A/C合并计算，不可把两类份额额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609091829169340",
+        "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609091829169340_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609231829774454",
+    "code": "019441",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-23T00:00:00+08:00",
+    "textHash": "77161d76c57c658319dfb8cb78b8591d1b48a3332b4730d0c9d6517be653fcf3",
+    "evidence": "代销每日10元，直销每日100元；各渠道内A/C合并计算，不可把两类份额额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609091829169340",
+        "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609091829169340_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609231829774454",
+    "code": "019442",
+    "channel": "agency",
+    "status": "open",
+    "limit": 10,
+    "effectiveAt": "2026-09-23T00:00:00+08:00",
+    "textHash": "77161d76c57c658319dfb8cb78b8591d1b48a3332b4730d0c9d6517be653fcf3",
+    "evidence": "代销每日10元，直销每日100元；各渠道内A/C合并计算，不可把两类份额额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609091829169340",
+        "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609091829169340_1.pdf"
+      }
+    ]
+  },
+  {
+    "noticeId": "AN202609231829774454",
+    "code": "019442",
+    "channel": "direct",
+    "status": "open",
+    "limit": 100,
+    "effectiveAt": "2026-09-23T00:00:00+08:00",
+    "textHash": "77161d76c57c658319dfb8cb78b8591d1b48a3332b4730d0c9d6517be653fcf3",
+    "evidence": "代销每日10元，直销每日100元；各渠道内A/C合并计算，不可把两类份额额度相加。 申购含定投；当时另有基金总规模上限与比例确认，累计额度不是保证成交金额。",
+    "beforeQuota": {
+      "status": "open",
+      "limit": 100
+    },
+    "beforeSources": [
+      {
+        "noticeId": "AN202609091829169340",
+        "textHash": "f10c05b2911159cdefd6bcca18571ae726710c53cf78f72de2ce22bd2b651614",
+        "sourceUrl": "https://pdf.dfcfw.com/pdf/H2_AN202609091829169340_1.pdf"
+      }
+    ]
+  }
+]
