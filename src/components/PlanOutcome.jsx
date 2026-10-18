@@ -1,4 +1,5 @@
 import React from 'react';
+import {formatPlanDuration} from '../plan-duration.mjs';
 import {CircleCheck,TriangleAlert,CircleX} from 'lucide-react';
 const money = n => `¥${new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2}).format(n)}`;
 const percent = n => `${(n<100?Math.min(n,99.9):n).toFixed(1)}%`;
@@ -7,8 +8,7 @@ const indexName = key => key==='nasdaq'?'纳斯达克100':'标普500';
 export default function PlanOutcome({result,status,children}) {
   const horizon=result.monthly?'本月':result.desiredWeeks?`${result.desiredWeeks}周内`:'完整计划';
   const after=result.monthly?'本月计划结束后':'设定周期结束后';
-  const unit=result.weekly?'次周扣款':'个可申购日';
-  const duration=(periods,weeks)=>`${periods.toLocaleString()} ${unit}（约 ${weeks.toLocaleString()} 周）`;
+  const duration=periods=>formatPlanDuration(periods,result.weekly);
   const assigned=result.allocations.filter(a=>a.amount>0);
   const conclusion=assigned.map(a=>`${indexName(a.index)}${a.blocked?'暂无额度':a.shortfall>0?'有缺口':'可达成'}`).join('，');
   const Icon=status==='achievable'?CircleCheck:status==='blocked'?CircleX:TriangleAlert;
@@ -31,15 +31,15 @@ export default function PlanOutcome({result,status,children}) {
     </section>
     {children}
     <section className="plan-timing" aria-label="投入时长与补齐时间">
-      <span>{result.monthly?`本月按 ${result.purchaseDays} 个扣款日测算`:result.desiredWeeks?`计划周期 ${result.desiredWeeks} 周 · ${result.weekly?'每周扣款一次':'每个可申购日扣款'}`:'按当前额度和所选基金测算'}</span>
-      <strong>{result.shortfall>0||result.blocked?conclusion||'暂无可用额度，补齐时间无法估算':`${result.periods.toLocaleString()} ${unit}内可投完`}</strong>
+      <span>{result.monthly?'本月预算的预计投入时长':result.desiredWeeks?`计划周期 ${formatPlanDuration(result.desiredWeeks,true)} · ${result.weekly?'每周扣款一次':'每个可申购日扣款'}`:'按当前额度和所选基金测算'}</span>
+      <strong>{result.shortfall>0||result.blocked?conclusion||'暂无可用额度，补齐时间无法估算':`预计${duration(result.periods)}投完`}</strong>
       <div className="plan-index-timing">{assigned.map(a=><div key={a.index} data-timing-index={a.index}>
         <b>{indexName(a.index)}{a.shortfall>0?`还差 ${money(a.shortfall)}`:`：${horizon}可达成`}</b>
-        {a.blocked?<small>当前没有可用额度，补齐时间无法估算，需等待额度开放。</small>:a.shortfall>0?<p className="allocation-catchup">按{result.weekly?'每周':'每个可申购日'} <b>{money(a.perPeriod)}</b> 继续投入，{after}还需 <b>{duration(a.extraPeriods,a.extraWeeks)}</b> 补齐。</p>:<p className="allocation-catchup">{money(a.amount)} 可全部投入，无需额外补齐。</p>}
+        {a.blocked?<small>当前没有可用额度，补齐时间无法估算，需等待额度开放。</small>:a.shortfall>0?<p className="allocation-catchup">按{result.weekly?'每周':'每个可申购日'} <b>{money(a.perPeriod)}</b> 继续投入，{after}还需 <b>{duration(a.extraPeriods)}</b> 补齐。</p>:<p className="allocation-catchup">{money(a.amount)} 可全部投入，无需额外补齐。</p>}
       </div>)}</div>
-      {!result.blocked&&<p className="plan-total-duration">本笔预算从开始到全部投完：共 {duration(result.periods,result.estimatedWeeks)}。</p>}
-      <small className="plan-timing-assumptions">按当前额度不变测算，{result.weekly?'每周扣款一次':'每周按5个可申购日折算'}，未计节假日和临时停购。</small>
-      {result.monthly&&<div className="plan-monthly-continuation"><b>每月固定投入提醒</b><p>{result.shortfall>0?`以上补齐时间仅针对本月预算，不叠加下个月的新预算。若每月仍投入 ${money(result.amount)}，保持当前比例、额度和每月 ${result.purchaseDays} 个扣款日，每月将新增 ${money(result.shortfall)} 缺口，未投入金额会继续累积。`:'本计划仅对应本月预算；下个月请按最新额度和扣款日重新计算。'}</p></div>}
+      {!result.blocked&&<p className="plan-total-duration">本笔预算从开始到全部投完：预计{duration(result.periods)}。</p>}
+      <small className="plan-timing-assumptions">按当前额度不变、{result.weekly?'每周扣款一次':'每周5个可申购日'}测算，按每月约30天换算为近似年月，未计节假日和临时停购。</small>
+      {result.monthly&&<div className="plan-monthly-continuation"><b>每月固定投入提醒</b><p>{result.shortfall>0?`以上补齐时间仅针对本月预算，不叠加下个月的新预算。若每月仍投入 ${money(result.amount)}，保持当前比例、额度和每月扣款安排，每月将新增 ${money(result.shortfall)} 缺口，未投入金额会继续累积。`:'本计划仅对应本月预算；下个月请按最新额度和扣款日重新计算。'}</p></div>}
 
     </section>
   </>;

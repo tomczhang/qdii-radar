@@ -1,6 +1,6 @@
 import React, {useEffect, useId, useRef, useState} from 'react';
 import {ArrowDown, ChevronDown} from 'lucide-react';
-import {channelBadge, shareRuleBadge, groupRules, groupSortValue, sortGroupMembers} from '../fund-groups.mjs';
+import {channelBadge, shareRuleBadge, groupRules, hasChannel, groupSortValue, sortGroupMembers} from '../fund-groups.mjs';
 import {feePercent} from '../../shared/fees.mjs';
 import {STABILITY_WINDOW_DAYS} from '../../shared/config.mjs';
 
@@ -36,7 +36,7 @@ function GroupRow({group, sort, renderShares}) {
     <button className="fund-group-toggle" aria-expanded={expanded} aria-controls={id} onClick={()=>setExpanded(!expanded)}>
       <span className="group-identity"><strong>{group.name}</strong><span>{group.shares} · {group.members.length} 个份额{group.members.some(f=>f.stale) && ' · 部分数据待更新'}</span></span>
       <span className="group-quota"><span className="group-mobile-label">合计 / 日 · 已去重</span><strong>{money(group.total.amount)}</strong><small>{group.total.amount==null?'额度待核验':partial?'已知额度 · 部分待确认':group.total.amount===0?'当前无已知可买额度':'元 / 日 · 已去重'}</small>{sortLabels[key]&&<small className="group-sort-value">{sortLabels[key]} {key.includes('Fee')?feePercent(value):key.startsWith('y')?value==null?'—':`${value.toFixed(2)}%`:money(value)}</small>}</span>
-      <span className="group-channels"><span className="group-mobile-label">渠道</span><span className="group-badges">{['direct','agency'].map(channel=><RuleBadge key={channel} badge={channelBadge(group,channel)}/>)}</span><RuleBadge badge={{label:rules.channel==='直销与代销共用'?'额度共用':rules.channel==='直销 + 代销可叠加'?'额度可叠加':rules.channel==='渠道关系待确认'?'关系待确认':'各份额规则不同',tone:'neutral',detail:rules.channel}}/></span>
+      <span className="group-channels"><span className="group-mobile-label">渠道</span><span className="group-badges">{['direct','agency'].map(channel=><RuleBadge key={channel} badge={channelBadge(group,channel)}/>)}</span>{rules.channel==='直销 + 代销可叠加' && hasChannel(group,'direct') && hasChannel(group,'agency') && <RuleBadge badge={{label:'额度可叠加',tone:'neutral',detail:rules.channel}}/>}</span>
       <span className="group-share-rule"><span className="group-mobile-label">份额规则</span><RuleBadge badge={shareRule}/>{shareRule.label==='待确认'&&group.members.some(f=>['direct','agency'].some(c=>f[c]?.scope?.basis==='default'))&&<small>默认按独立计算</small>}</span>
       <span className="group-fee"><span className="group-mobile-label">年度费率</span><strong>{rate}</strong><small>{rates.length<group.members.length?'部分费率待更新':'各份额费率范围'}</small></span>
       <span className="group-expand">{expanded?'收起':'展开'}<ChevronDown size={16}/></span>

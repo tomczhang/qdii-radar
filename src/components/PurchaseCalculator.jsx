@@ -4,7 +4,7 @@ import PlanOutcome from './PlanOutcome.jsx';
 import PlanCosts from './PlanCosts.jsx';
 import PlanComparison from './PlanComparison.jsx';
 import PlanExecution from './PlanExecution.jsx';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Calculator, ArrowRight, Info, ChevronRight, X, SlidersHorizontal } from 'lucide-react';
 import { purchaseCandidates, selectedCandidates, calculatePurchasePlan, planSignature } from '../purchase-plan.mjs';
 const money = n => `¥${new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2}).format(n)}`;
@@ -16,12 +16,15 @@ const loadSnapshot = () => {try{return readPurchaseSnapshot(window.localStorage)
 export default function PurchaseCalculator({funds, updatedAt, onDetail, favorites = []}) {
   const [snapshot] = useState(loadSnapshot);
   const [input,setInput] = useState(()=>snapshot?.input || {...initialInput}), [choices,setChoices] = useState(()=>snapshot?.choices || {}), [result,setResult] = useState(null), [error,setError] = useState('');
+  const [completing,setCompleting] = useState(false), [revealVersion,setRevealVersion] = useState(0);
+  const calculatorRef=useRef(null),pendingExit=useRef(null);
   const [storageNotice,setStorageNotice] = useState('');
   const [conditionsOpen,setConditionsOpen] = useState(()=>!snapshot);
   const drawerRef=useRef(null),editBaseline=useRef(null),conditionButton=useRef(null);
   const restored = useRef(false);
   const allGroups = useMemo(()=>purchaseCandidates(funds,input.channel),[funds,input.channel]);
-  const managers = [...new Set(allGroups.flatMap(g=>g.options.map(o=>o.manager)).filter(Boolean))].sort();
+  // Company selection is independent of today's quota and the selected sales channel.
+  const managers = useMemo(()=>[...new Set(funds.filter(f=>f.venue!=='etf' && (!f.currency || f.currency==='CNY') && ['nasdaq','sp500'].includes(f.index)).map(f=>f.manager).filter(Boolean))].sort(),[funds]);
   const groups = useMemo(()=>allGroups.map(g=>({...g,options:g.options.filter(o=>input.selectedManagers===null || input.selectedManagers.includes(o.manager))})).filter(g=>g.options.length),[allGroups,input.selectedManagers]);
   const selected = selectedCandidates(groups,choices,input), signature = planSignature(selected);
   const stale = result && result.signature !== signature;
@@ -53,11 +56,25 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
     dialog.addEventListener('keydown',keepFocus);
     return ()=>{dialog.removeEventListener('keydown',keepFocus);dialog.close();document.body.style.overflow=previousOverflow;conditionButton.current?.focus({preventScroll:true});};
   },[conditionsOpen]);
+  useEffect(()=>()=>{pendingExit.current?.cancel();pendingExit.current=null;},[]);
+  useLayoutEffect(()=>{
+    if(!revealVersion)return;
+    const preference=window.matchMedia('(prefers-reduced-motion: reduce)');
+    if(preference.matches)return;
+    const animations=[...calculatorRef.current.querySelectorAll('.plan-result-step')].map((element,index)=>element.animate(
+      [{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],
+      {duration:280,delay:index*40,easing:'cubic-bezier(0.22, 1, 0.36, 1)',fill:'backwards'}
+    ));
+    const stop=()=>animations.forEach(animation=>animation.cancel());
+    preference.addEventListener('change',stop);
+    return ()=>{stop();preference.removeEventListener('change',stop);};
+  },[revealVersion]);
   function openConditions() {
     editBaseline.current={input,choices,result,error,storageNotice};
     setConditionsOpen(true);
   }
   function closeConditions() {
+    pendingExit.current?.cancel();pendingExit.current=null;setCompleting(false);
     const previous=editBaseline.current;
     if(previous){setInput(previous.input);setChoices(previous.choices);setResult(previous.result);setError(previous.error);setStorageNotice(previous.storageNotice);}
     editBaseline.current=null;
@@ -80,19 +97,41 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
     const next={...input,...(typeof key==='object'?key:{[key]:value})};
     try{const plan=calculatePurchasePlan(next,selectedCandidates(groups,choices,next));setInput(next);setResult(plan);setError('');persist(next,plan);}catch(e){setError(e.message);}
   }
-  function calculate(e) {e.preventDefault();restored.current=true;try{const plan=calculatePurchasePlan(input,selected);setResult(plan);setError('');persist(input,plan);editBaseline.current=null;setConditionsOpen(false);}catch(e){setError(e.message);setResult(null);setStorageNotice('');}}
+  async function calculate(e) {
+    e.preventDefault();
+    if(pendingExit.current)return;
+    restored.current=true;
+    let plan;
+    try{plan=calculatePurchasePlan(input,selected);}
+    catch(error){setError(error.message);setResult(null);setStorageNotice('');return;}
+    setError('');
+    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      setCompleting(true);
+      const animation=drawerRef.current.animate(
+        [{opacity:1,transform:'translateX(0)'},{opacity:0,transform:'translateX(24px)'}],
+        {duration:180,easing:'cubic-bezier(0.4, 0, 1, 1)',fill:'forwards'}
+      );
+      pendingExit.current=animation;
+      try{await animation.finished;}catch{return;}
+      if(pendingExit.current!==animation)return;
+      pendingExit.current=null;
+      animation.cancel();
+    }
+    setCompleting(false);setResult(plan);persist(input,plan);
+    editBaseline.current=null;setConditionsOpen(false);setRevealVersion(version=>version+1);
+  }
   const ratioSummary=input.ratioMode==='custom'?`纳指 ${input.ratio}% / 标普 ${100-Number(input.ratio)}%`:({'nasdaq':'只买纳指','sp500':'只买标普','any-sp500':'不限比例偏标普','any-nasdaq':'不限比例偏纳指'}[input.ratioMode]);
   const timeSummary=input.mode==='monthly'?`每月固定投入 · ${input.purchaseDays} 个扣款日`:input.mode==='steady'?`${input.weeks} 周分批 · ${input.frequency==='weekly'?'每周一次':'每个可申购日'}`:'资金尽快投完';
-  return <section className="purchase-calculator" aria-label="购买计算器">
+  return <section ref={calculatorRef} className="purchase-calculator" aria-label="购买计算器">
     <div className="calculator-conditions-summary">
       <div><span>投入条件</span><h2>{input.amount?`${input.mode==='monthly'?'每月':'计划投入'} ${money(Number(input.amount))}`:'设置条件，生成投入方案'}</h2><p>{timeSummary} · {ratioSummary} · {input.channel==='both'?'代销+直销':input.channel==='agency'?'代销':'直销'} · {input.selectedManagers===null?'全部基金公司':`已选 ${input.selectedManagers.length} 家基金公司`}</p></div>
       <button ref={conditionButton} type="button" className="button secondary" aria-haspopup="dialog" aria-expanded={conditionsOpen} onClick={openConditions}><SlidersHorizontal size={16}/>{result?'修改条件':'设置条件'}</button>
       {storageNotice&&<p className="calculator-storage-notice" role="status">{storageNotice}</p>}
     </div>
-    <dialog ref={drawerRef} className="calculator-conditions-drawer" aria-labelledby="calculator-conditions-title" onCancel={e=>{e.preventDefault();closeConditions();}} onClick={e=>{if(e.target!==e.currentTarget)return;const r=e.currentTarget.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeConditions();}}>
+    <dialog ref={drawerRef} data-completing={completing || undefined} className="calculator-conditions-drawer" aria-labelledby="calculator-conditions-title" onCancel={e=>{e.preventDefault();closeConditions();}} onClick={e=>{if(e.target!==e.currentTarget)return;const r=e.currentTarget.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeConditions();}}>
     <header className="calculator-drawer-heading"><div><h2 id="calculator-conditions-title" tabIndex={-1}>设置投入条件</h2><p>计算后应用修改，关闭可保留原方案。</p></div><button type="button" className="icon-button" aria-label="关闭条件设置" onClick={closeConditions}><X size={20}/></button></header>
     <form className="calculator-form" onSubmit={calculate}>
-      <div className="calculator-drawer-body">
+      <div className="calculator-drawer-body" inert={completing}>
       <section className="calculator-step" aria-label="01 定金额">
         <StepTitle number="01">定金额</StepTitle>
         <div className="calculator-fields calculator-amount"><label>{input.mode==='monthly'?'每月投入预算（元）':'本次计划投入金额（元）'}<input type="number" min="1" max="100000000" step="0.01" required placeholder="例如 10000" value={input.amount} onChange={e=>update('amount',e.target.value)} /></label></div>
@@ -118,10 +157,10 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
       </section>
       <section className="calculator-step" aria-label="05 定基金公司">
         <StepTitle number="05">定基金公司</StepTitle>
-        <p className="calculator-step-note">选择从哪些基金公司购买，默认全选。计算时只在所选公司内安排。</p>
+        <p className="calculator-step-note">基金公司默认全选，暂无额度的公司也保留。计算时只安排所选公司中当前有可用额度的基金。</p>
         <div className="calculator-company-actions"><span>已选 {managers.filter(m=>input.selectedManagers===null || input.selectedManagers.includes(m)).length} / {managers.length} 家</span><button type="button" onClick={()=>update('selectedManagers',null)}>全选</button><button type="button" onClick={()=>update('selectedManagers',[])}>清空</button></div>
         <fieldset className="calculator-companies" aria-label="参与购买的基金公司">{managers.map(manager=><label key={manager}><input type="checkbox" checked={input.selectedManagers===null || input.selectedManagers.includes(manager)} onChange={e=>chooseManager(manager,e.target.checked)}/>{manager}</label>)}</fieldset>
-        {!managers.length && <p className="calculator-step-note">当前渠道暂无可用的基金公司。</p>}
+        {!managers.length && <p className="calculator-step-note">暂无基金公司数据。</p>}
         <div className="calculator-small-quotas"><button type="button" className="calculator-toggle-row" role="switch" aria-checked={input.includeSmallQuotas} aria-label="≤10元的小额度基金也纳入" onClick={()=>update('includeSmallQuotas',!input.includeSmallQuotas)}><span>≤10元的小额度基金也纳入</span><span className="calculator-toggle-track" aria-hidden="true"><span/></span></button><p className="calculator-step-note">按每日申购上限判断，代销和直销统一适用；关闭时跳过日限额≤10元的基金。</p></div>
         <div className="calculator-capacity"><span>当前选择的每日可用上限</span><div><strong>纳指 {money(totals.nasdaq)}</strong><strong>标普 {money(totals.sp500)}</strong></div><small>已按公司、小额度开关与渠道去重规则筛选。{scopePending>0 && `另有 ${scopePending} 个可申购份额的规则待核验，暂未纳入。`}</small></div>
       <details className="calculator-candidates"><summary>{selected.length} 个候选额度组 · 调整参与计算的份额</summary><p>以下是可用候选，先满足额度与投入节奏，计划可达成时可在方案中切换选基方式。日限额≤10元的基金由小额度开关统一控制，实际采用的额度以计算结果为准。独立份额分别列出；共享组保留可用额度较高的份额，同额度时优先A类，少维护方案优先C类；手动指定的份额不会自动切换。取消不准备购买的基金；直销需自行确认开户及购买资格。</p>{favoriteGroups.length>0 && <button className="calculator-use-favorites" type="button" onClick={useFavorites}>使用已关注的 {favoriteGroups.length} 个额度组</button>}{groups.length ? groups.map(group=>{
@@ -132,7 +171,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
       </div>
       <footer className="calculator-drawer-footer">
       {error && <p className="calculator-error" role="alert">{error}</p>}
-      <button className="button primary calculate-button" type="submit" onClick={() => usage.calculateClick()}><Calculator size={18}/>生成方案<ArrowRight size={16}/></button>
+      <button className="button primary calculate-button" type="submit" disabled={completing} onClick={() => usage.calculateClick()}><Calculator size={18}/>生成方案<ArrowRight size={16}/></button>
       <p className="calculator-privacy">计算成功后，输入与结果快照仅保存在本浏览器，下次打开自动恢复，不会自动申购。网站仅统计匿名访问与按钮点击，不上传金额、持仓或计算结果。</p>
       </footer>
     </form>
