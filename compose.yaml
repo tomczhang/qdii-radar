@@ -7,9 +7,14 @@ services:
       PORT: 4387
       DATA_DIR: /app/.data
     ports:
-      - "4387:4387"
+      - "127.0.0.1:4387:4387"
     volumes:
       - radar-data:/app/.data
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   radar-data:

@@ -121,7 +121,7 @@ try {
     check('ETF premium ' + direction + ' sort matches real API', await page.locator('.etf-table tbody tr').first().getAttribute('data-fund-code') === expected[0].code);
   }
   await page.getByLabel('排序方式').selectOption('premium:asc');
-  await page.locator('.etf-table .fund-identity').first().click();
+  await page.locator('.mobile-etf-detail').first().click();
   check('ETF detail explains trading without quota alerts', await page.locator('dialog .detail-quotas').count() === 0 && await page.getByRole('button', { name: '关注这只基金的额度' }).count() === 0);
   await page.keyboard.press('Escape');
   for (const width of [1440, 768, 390, 320]) {
@@ -138,7 +138,7 @@ try {
   await page.unroute('**/api/dashboard');
   await page.route('**/api/dashboard', route=>route.fulfill({json:{...data,funds:usableFunds.map(f=>f.code==='000834'?{...f,stale:true,dataIssues:['代销额度待更新']}:f),meta:{...data.meta,staleCount:1,lastRun:{status:'success'}}}}));
   await page.reload({waitUntil:'networkidle'});
-  check('A genuine stale field is still explained to users', (await page.locator('body').innerText()).includes('1 只基金有部分数据待更新'));
+  check('A genuine stale field is still explained to users', (await page.locator('.data-issues').innerText()).includes('000834') && (await page.locator('.data-issues').innerText()).includes('代销额度待更新') && !(await page.locator('body').innerText()).includes('只基金有部分数据待更新'));
   await page.unroute('**/api/dashboard');
   // Browser-only fixture exercises nonempty changes without writing fake events to the server.
   const sample = {id:'browser-fixture',code:'000834',name:'测试基金 A',channel:'直销',type:'increase',before:'¥10',after:'¥100',beforeQuota:{status:'open',limit:10},afterQuota:{status:'open',limit:100},createdAt:new Date().toISOString()};

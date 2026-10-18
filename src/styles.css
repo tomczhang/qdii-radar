@@ -804,3 +804,128 @@ th.quota-cell.sorted { background: #d7e6ff; }
 /* The counter measures the real glyph widths and inherits each card's typography. */
 .rolling-amount { vertical-align:baseline; }
 .rolling-amount .counter__row { letter-spacing:inherit; }
+.rolling-amount .counter__measure { left: auto; right: 0; }
+
+/* Secondary details stay available without occupying the default mobile overview. */
+.mobile-disclosure > summary, .mobile-summary-toggle, .mobile-group-facts, .mobile-etf-list, .mobile-publisher { display: none; }
+.mobile-disclosure > summary { cursor: pointer; color: #365f96; font-size: 12px; min-height: 44px; align-content: center; }
+.mobile-disclosure > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.data-issues > div { min-width: 0; flex: 1; }
+.data-issue-link { display: grid; gap: 3px; min-height: 44px; padding: 3px 0; text-align: left; color: #845712; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.data-issue-link strong { font-weight: 600; }
+.data-issues details summary { cursor: pointer; min-height: 44px; align-content: center; }
+.data-issues ul { list-style: none; margin: 0; padding: 0; }
+.data-issues li { border-top: 1px solid #eadbbb; padding: 4px 0; }
+.data-issues p { font-size: 11px; margin-top: 5px; }
+.fund-issue-text, .group-identity > .fund-issue-text { color: #845712; font-size: 11px; line-height: 1.6; }
+.plan-duration-summary { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; padding: 14px 0; margin-top: 12px; border-top: 1px solid #d4e2f3; }
+.plan-duration-summary span { color: #526d91; font-size: 12px; }
+.plan-duration-summary strong { color: #2459a9; font-size: 17px; }
+.plan-outcome .plan-monthly-continuation { margin-top: 12px; padding: 10px 12px; border: 1px solid #e8cd99; border-radius: 8px; background: #fff9ee; color: #80531b; }
+.plan-outcome .plan-monthly-continuation p { margin: 5px 0 0; color: inherit; font-size: 12px; }
+.plan-timing-assumptions { display: block; font-size: 11px; line-height: 1.7; color: #637d9e; margin-top: 10px; }
+
+@media(max-width:760px) {
+  main { padding-top: 14px; }
+  .topbar { min-height: 60px; padding-block: 8px; }
+  .workspace-header { position: relative; }
+  .topbar .publisher-follow { display: none; }
+  .mobile-publisher { display: block; flex-basis: 100%; min-width: 0; width: 100%; }
+  .mobile-publisher .publisher-follow { margin: 0; }
+  .page-heading { margin-bottom: 12px; gap: 8px; }
+  .page-heading h1 { font-size: 21px; }
+  .page-heading .eyebrow { display: none; }
+  .page-heading p { max-width: none; }
+  .heading-actions { gap: 8px; }
+  .overview-quota-switch.calculator-toggle-row, .quota-changes-notice { min-height: 44px; }
+  .summary-grid { gap: 8px; margin-bottom: 0; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .summary-grid .summary-card { padding: 12px; }
+  .summary-grid .combined-summary { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+  .summary-grid .combined-summary .summary-number { margin-top: 0; }
+  .summary-grid .combined-summary .summary-breakdown { grid-column: 1 / -1; display: flex; flex-wrap: wrap; margin-top: 8px; }
+  .summary-grid .summary-number { font-size: 25px; margin-top: 6px; }
+  .summary-grid .summary-breakdown { font-size: 11px; gap: 6px 14px; }
+  .summary-grid .summary-breakdown strong { font-size: 13px; }
+  .summary-grid:not(.summary-expanded) .summary-periods,
+  .summary-grid:not(.summary-expanded) .forecast-note,
+  .summary-grid:not(.summary-expanded) .summary-card:not(.combined-summary) .summary-breakdown { display: none; }
+  .summary-grid .combined-summary .summary-periods, .summary-grid .combined-summary .forecast-note { grid-column: 1 / -1; }
+  .mobile-summary-toggle { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; width: 100%; font-size: 12px; color: #365f96; }
+  .mobile-summary-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .venue-tabs { margin: 4px 0 8px; width: 100%; }
+  .venue-tabs button { min-height: 44px; font-size: 13px; flex: 1; justify-content: center; padding: 8px; }
+  .board-header { min-height: 44px; padding-block: 0; }
+  .board-header .index-tabs { min-height: 44px; }
+  .board-toolbar { padding-block: 8px; gap: 4px 8px; }
+  .search-field { min-height: 44px; }
+  .search-field input { font-size: 16px; padding-block: 10px; }
+  .open-filter, .sort-select { min-height: 44px; }
+  .sort-select { min-width: 0; max-width: 100%; }
+  .sort-select select { min-width: 0; width: 100%; max-width: 215px; font-size: 12px; min-height: 44px; }
+  .mobile-disclosure > summary { display: list-item; }
+  .mobile-disclosure { min-width: 0; }
+  .mobile-disclosure-content { padding-bottom: 8px; }
+  .board-method .quota-sort-note { padding: 4px 0 8px; }
+  .group-list-note { display: none; }
+  .group-list-heading { padding: 0 8px; }
+  .channel-filter > summary { min-height: 44px; }
+  .fund-group-toggle { grid-template-columns: minmax(0,1fr) auto 16px; gap: 6px 10px; min-height: 104px; padding: 12px; }
+  .group-identity { grid-column: 1; grid-row: 1; gap: 3px; }
+  .group-identity strong { font-size: 13px; }
+  .group-identity > span { font-size: 11px; }
+  .group-quota { grid-column: 2; grid-row: 1 / 3; text-align: right; gap: 3px; max-width: 130px; }
+  .group-quota > strong { font-size: 23px; }
+  .group-quota .group-mobile-label { font-size: 10px; }
+  .group-quota .quota-unit { display: none; }
+  .group-channels { grid-column: 1; grid-row: 2; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .group-channels .group-mobile-label { display: none; }
+  .group-channels .rule-badge { font-size: 10px; padding: 2px 5px; }
+  .fund-group-toggle .group-share-rule, .fund-group-toggle .group-fee { display: none; }
+  .group-expand { grid-column: 3; grid-row: 1 / 3; font-size: 0; }
+  .mobile-group-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px; color: #526982; font-size: 12px; background: #f8fbff; }
+  .group-periods { padding: 8px 12px; }
+  .group-periods small { flex-basis: auto; }
+  .group-detail-note { padding-bottom: 8px; font-size: 11px; }
+  .page-data-details { border-top: 1px solid var(--line); margin-top: 12px; }
+  .page-data-details .catalog-caption { margin-top: 0; }
+  .page-footer { margin-top: 12px; }
+  .etf-section { padding: 0; }
+  .etf-section .comparison-scroll, .etf-section > .scroll-hint { display: none; }
+  .etf-explainer { margin-bottom: 4px; }
+  .mobile-etf-list { display: block; border: 1px solid var(--line); border-radius: 10px; background: white; overflow: hidden; }
+  .mobile-etf-row + .mobile-etf-row { border-top: 1px solid var(--line); }
+  .mobile-etf-detail { width: 100%; display: grid; grid-template-columns: minmax(0,1fr) auto 14px; align-items: center; gap: 8px; padding: 12px; text-align: left; }
+  .mobile-etf-detail .fund-avatar { display: none; }
+  .mobile-etf-detail .fund-name { white-space: normal; font-size: 12px; }
+  .mobile-etf-detail .fund-meta { flex-wrap: wrap; gap: 4px; font-size: 10px; }
+  .mobile-etf-premium { display: grid; gap: 3px; text-align: right; font-variant-numeric: tabular-nums; }
+  .mobile-etf-premium strong { font-size: 20px; }
+  .mobile-etf-premium small { font-size: 10px; color: #637d9e; }
+  .mobile-etf-row > .fund-issue-text { padding: 0 12px 10px; }
+  .calculator-conditions-summary { gap: 10px; padding: 14px; }
+  .calculator-conditions-summary > div { flex-basis: auto; }
+  .calculator-conditions-summary h2 { font-size: 17px; }
+  .calculator-conditions-summary > .calculator-storage-notice { font-size: 10px; }
+  .purchase-calculator { gap: 12px; }
+  .plan-secondary-details { margin-top: 12px; border-top: 1px solid var(--line); }
+  .plan-result-step { padding-block: 12px; }
+  .plan-result-step > .calculator-section-title { margin-bottom: 12px; }
+  .plan-budget-metrics { gap: 8px; }
+  .plan-outcome .plan-allocation { grid-template-columns: 1fr; }
+  .plan-outcome .plan-allocation > div { padding: 12px; }
+  .plan-outcome .plan-allocation .allocation-shortfall { font-size: 12px; }
+  .plan-duration-summary { margin-top: 8px; padding: 10px 0; }
+  .plan-duration-summary strong { font-size: 16px; }
+  .calculator-company-details { margin-top: 14px; border-top: 1px solid var(--line); }
+  .calculator-company-details .calculator-step { margin-top: 0; padding-top: 8px; }
+  .calculator-conditions-drawer { inset: auto 0 0; width: 100%; height: 92dvh; max-height: 100dvh; border: 0; border-top: 1px solid #d5e2f2; border-radius: 18px 18px 0 0; box-shadow: 0 -12px 50px #19335422; }
+  .calculator-conditions-drawer[open] { animation-name: conditions-enter-bottom; }
+  .calculator-drawer-heading { padding: 18px 16px 10px; position: relative; }
+  .calculator-drawer-heading::before { content: ''; position: absolute; width: 36px; height: 4px; border-radius: 4px; background: #b9c9dc; top: 6px; left: calc(50% - 18px); }
+  .calculator-drawer-heading h2 { font-size: 17px; }
+  .calculator-drawer-heading p { font-size: 11px; }
+  .calculator-drawer-body { padding: 14px 16px; }
+  .calculator-drawer-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .calculator-drawer-body select { font-size: 16px; }
+  .calculator-drawer-footer .calculator-privacy { font-size: 10px; line-height: 1.5; margin-top: 6px; }
+}
+@keyframes conditions-enter-bottom { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

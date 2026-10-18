@@ -1,6 +1,7 @@
 import {initialInput,readPurchaseSnapshot,savePurchaseSnapshot} from '../purchase-snapshot.mjs';
 import { usage } from '../usage.mjs';
 import PlanOutcome from './PlanOutcome.jsx';
+import MobileDisclosure from './MobileDisclosure.jsx';
 import PlanCosts from './PlanCosts.jsx';
 import PlanComparison from './PlanComparison.jsx';
 import PlanExecution from './PlanExecution.jsx';
@@ -73,8 +74,25 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
     editBaseline.current={input,choices,result,error,storageNotice};
     setConditionsOpen(true);
   }
-  function closeConditions() {
-    pendingExit.current?.cancel();pendingExit.current=null;setCompleting(false);
+  async function animateConditionsExit() {
+    pendingExit.current?.cancel();
+    pendingExit.current=null;
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return true;
+    setCompleting(true);
+    const mobile=window.matchMedia('(max-width: 760px)').matches;
+    const animation=drawerRef.current.animate(
+      [{opacity:1,transform:'translate(0,0)'},{opacity:0,transform:mobile?'translateY(100%)':'translateX(24px)'}],
+      {duration:180,easing:'cubic-bezier(0.4, 0, 1, 1)',fill:'forwards'}
+    );
+    pendingExit.current=animation;
+    try{await animation.finished;}catch{return false;}
+    if(pendingExit.current!==animation)return false;
+    pendingExit.current=null;animation.cancel();
+    return true;
+  }
+  async function closeConditions() {
+    if(!await animateConditionsExit())return;
+    setCompleting(false);
     const previous=editBaseline.current;
     if(previous){setInput(previous.input);setChoices(previous.choices);setResult(previous.result);setError(previous.error);setStorageNotice(previous.storageNotice);}
     editBaseline.current=null;
@@ -105,18 +123,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
     try{plan=calculatePurchasePlan(input,selected);}
     catch(error){setError(error.message);setResult(null);setStorageNotice('');return;}
     setError('');
-    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      setCompleting(true);
-      const animation=drawerRef.current.animate(
-        [{opacity:1,transform:'translateX(0)'},{opacity:0,transform:'translateX(24px)'}],
-        {duration:180,easing:'cubic-bezier(0.4, 0, 1, 1)',fill:'forwards'}
-      );
-      pendingExit.current=animation;
-      try{await animation.finished;}catch{return;}
-      if(pendingExit.current!==animation)return;
-      pendingExit.current=null;
-      animation.cancel();
-    }
+    if(!await animateConditionsExit())return;
     setCompleting(false);setResult(plan);persist(input,plan);
     editBaseline.current=null;setConditionsOpen(false);setRevealVersion(version=>version+1);
   }
@@ -155,7 +162,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
         <div className="calculator-fields calculator-amount"><label>购买渠道<select aria-label="购买渠道" value={input.channel} onChange={e=>update('channel',e.target.value)}><option value="agency">代销（方便）</option><option value="direct">直销（额度大）</option><option value="both">代销+直销（最大额度）</option></select></label></div>
         <p className="calculator-step-note">{input.channel==='both'?'合并比较两种渠道，只有公告确认独立的额度才相加；共享或关系待确认的额度择一使用。':input.channel==='agency'?'按基金标注的平台购买；同一份额在多个代销平台择一，不重复计额。':'在对应基金公司的直销渠道购买，实际限额以当前公告和购买页面为准。'}</p>
       </section>
-      <section className="calculator-step" aria-label="05 定基金公司">
+      <MobileDisclosure title={`基金公司与份额 · 已选 ${managers.filter(m=>input.selectedManagers===null || input.selectedManagers.includes(m)).length} 家`} className="calculator-company-details"><section className="calculator-step" aria-label="05 定基金公司">
         <StepTitle number="05">定基金公司</StepTitle>
         <p className="calculator-step-note">基金公司默认全选，暂无额度的公司也保留。计算时只安排所选公司中当前有可用额度的基金。</p>
         <div className="calculator-company-actions"><span>已选 {managers.filter(m=>input.selectedManagers===null || input.selectedManagers.includes(m)).length} / {managers.length} 家</span><button type="button" onClick={()=>update('selectedManagers',null)}>全选</button><button type="button" onClick={()=>update('selectedManagers',[])}>清空</button></div>
@@ -167,7 +174,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
         const enabled=choices[group.id]!==false, code=choices[group.id] || optionKey(selected.find(r=>r.id===group.id) || group.options[0]);
         return <div className="calculator-candidate" key={group.id}><label><input type="checkbox" checked={enabled} onChange={e=>select(group.id,e.target.checked?optionKey(group.options[0]):false)}/><span>{group.name}<small>{channelName(group.channel)} · {indexName(group.index)} · {group.scope?.mode==='shared'?`共享 ${group.scope.members?.map(m=>m.share).join('/') || ''}`:`${group.options[0].share} 独立额度`}</small>{group.channelNote&&<small>{group.channelNote}</small>}</span></label><select aria-label={`${group.name}${channelName(group.channel)}参与计算的份额`} disabled={!enabled} value={code} onChange={e=>select(group.id,e.target.value)}>{!group.options.some(o=>optionKey(o)===code)&&<option value={code}>所选份额已不可用</option>}{group.options.map(o=><option key={optionKey(o)} value={optionKey(o)}>{channelName(o.channel,o.platform)} · {o.share} · {o.code} · {money(o.limit)}/日</option>)}</select></div>;
       }):<p>当前公司与渠道组合暂无可用基金，请调整选择。</p>}</details>
-      </section>
+      </section></MobileDisclosure>
       </div>
       <footer className="calculator-drawer-footer">
       {error && <p className="calculator-error" role="alert">{error}</p>}
@@ -185,7 +192,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
           <StepTitle number="01">能不能完成</StepTitle>
           <PlanOutcome result={result} status={planStatus}/>
         </section>
-        <section className="plan-result-step" aria-label="02 选基与费用">
+        <MobileDisclosure title="调整选基、费用与账户明细" className="plan-secondary-details"><section className="plan-result-step" aria-label="02 选基与费用">
           <StepTitle number="02">选基与费用</StepTitle>
           <section className="plan-preferences" aria-label="比较选基方案">
             <PlanComparison {...{result,input,groups,choices}} onPreference={changePreference}/>
@@ -202,7 +209,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
           <p className="plan-selection-note">{result.strategy==='maintenance'?'先满足预算与期限，再减少账户和购买产品；同等条件下优先选 C 类。':result.strategy==='returns'?`同一基金优先 A 类，再按近${result.returnYears}年历史收益安排额度。历史收益不代表未来收益，具体数据在最终方案中展开查看。`:`先满足预算与期限，同一基金优先 A 类，${result.costs.holdingYears==null?'按年度费率安排额度':`按申购费 + ${result.costs.holdingYears} 年持有费用安排额度`}。按额度上限估算排序，再逐笔估费，不保证全局费用最低。`}</p>
           {result.missingReturnCount>0 && <p className="calculator-warning">本方案有 {result.missingReturnCount} 只基金缺少近{result.returnYears}年收益，仅作为额度补充；不能据此认定其历史收益更高。</p>}
         </section>}
-        </section>
+        </section></MobileDisclosure>
         {result.skippedSmallQuotas.length>0 && <p className="calculator-warning">本次已跳过 {result.skippedSmallQuotas.length} 个日限额≤10元的小额度候选。如需一起投入，请开启“≤10元的小额度基金也纳入”后重新计算。</p>}
         {result.targetUnreachable && <p className="calculator-warning">仅靠本次新增资金无法达到目标比例，已优先补足另一侧；不卖出现有持仓。按金额计算，完成后纳指占比约 {result.finalNasdaqPercent.toFixed(1)}%。</p>}
       </>}

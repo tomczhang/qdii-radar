@@ -35,7 +35,7 @@ export function currentFund(store, fund, now = new Date()) {
   const stale = !snapshot || +now - Date.parse(snapshot.observedAt) > 36 * 3600000 || directStale;
   let direct = rule ? { status: rule.status, limit: rule.limit, source: '基金公司公告', sourceUrl: rule.sourceUrl, effectiveAt: rule.effectiveAt, ruleId: rule.id, evidence: rule.evidence, stale } : unknownQuota();
   if (!scan?.complete && !baseline.some(r => r.code === fund.code)) direct = unknownQuota('历史公告补抓未完成，暂不确认直销额度');
-  if (pending.length) direct = { ...unknownQuota('发现待核验的新公告'), sourceUrl: pending[0].sourceUrl, previous: direct, pendingReview: true };
+  if (pending.length) direct = { ...unknownQuota('发现待核验的新公告'), sourceUrl: pending[0].sourceUrl, previous: direct, pendingReview: true, pendingPublishedAt: pending.map(n => n.publishedAt).sort().at(-1) };
   const { raw, gildataRaw, ...safe } = snapshot || {};
   const agencyRule = store.activeRule(fund.code, 'agency', now);
   if (snapshot && agencyRule && snapshot.agency.status !== 'unavailable' && new Date(agencyRule.effectiveAt) > new Date(snapshot.observedAt)) safe.agency = { status: agencyRule.status, limit: agencyRule.limit, source: '基金公司公告', sourceUrl: agencyRule.sourceUrl, effectiveAt: agencyRule.effectiveAt, observedAt: new Date(Math.max(Date.parse(snapshot.agency.observedAt || snapshot.observedAt), Date.parse(agencyRule.effectiveAt))).toISOString() };

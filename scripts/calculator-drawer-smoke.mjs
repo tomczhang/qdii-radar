@@ -15,7 +15,7 @@ try{
  check('First visit opens conditions as a modal drawer',await drawer.isVisible()&&await drawer.evaluate(el=>el.matches(':modal')));
  check('All five condition steps are retained',await drawer.locator('.calculator-step').count()===5);
  check('Background scrolling is locked',await page.evaluate(()=>document.body.style.overflow)==='hidden');
- await page.keyboard.press('Escape');
+ await page.keyboard.press('Escape');await drawer.waitFor({state:'hidden'});
  check('Escape closes and returns focus to the entry',!await drawer.isVisible()&&await summary.getByRole('button',{name:'设置条件'}).evaluate(el=>el===document.activeElement));
  await summary.getByRole('button',{name:'设置条件'}).click();
  await page.getByLabel('每月投入预算（元）').fill('250');await page.getByRole('button',{name:'只买纳指',exact:true}).click();
@@ -27,7 +27,7 @@ try{
  check('Summary states committed budget and ratio',(await summary.innerText()).includes('¥250')&&(await summary.innerText()).includes('只买纳指'));
  check('Body scrolling restored',await page.evaluate(()=>document.body.style.overflow)!=='hidden');
  const saved=await page.evaluate(()=>localStorage.getItem('qdii-radar:purchase-calculator:v1'));
- await summary.getByRole('button',{name:'修改条件'}).click();await page.getByLabel('每月投入预算（元）').fill('999');await page.getByRole('button',{name:'只买标普',exact:true}).click();await page.getByRole('button',{name:'清空',exact:true}).click();await page.keyboard.press('Escape');
+ await summary.getByRole('button',{name:'修改条件'}).click();await page.getByLabel('每月投入预算（元）').fill('999');await page.getByRole('button',{name:'只买标普',exact:true}).click();await page.getByRole('button',{name:'清空',exact:true}).click();await page.keyboard.press('Escape');await drawer.waitFor({state:'hidden'});
  check('Cancel restores original budget, allocation and result',(await summary.innerText()).includes('¥250')&&(await summary.innerText()).includes('只买纳指')&&(await page.locator('.execution-grand-total').innerText()).includes('¥250'));
  check('Cancelled edits never replace the saved snapshot',await page.evaluate(()=>localStorage.getItem('qdii-radar:purchase-calculator:v1'))===saved);
  await summary.getByRole('button',{name:'修改条件'}).click();
@@ -50,14 +50,15 @@ try{
   check('Full-width plans fit '+width,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   if(width===1440||width===390){await summary.scrollIntoViewIfNeeded();await page.screenshot({path:`outputs/visual-refresh/calculator-full-plan-${width}.png`});}
   await summary.getByRole('button',{name:'修改条件'}).click();
+  await drawer.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
   check('Drawer and submit fit '+width,await drawer.evaluate(el=>{const r=el.getBoundingClientRect(),b=el.querySelector('.calculate-button').getBoundingClientRect();return r.width<=innerWidth&&r.height<=innerHeight&&el.scrollWidth<=el.clientWidth+1&&b.top>=0&&b.bottom<=innerHeight;}));
   await drawer.getByRole('button',{name:'关闭条件设置'}).focus();await page.keyboard.press('Shift+Tab');
   check('Keyboard focus stays within drawer '+width,await drawer.evaluate(el=>el.contains(document.activeElement)));
   if(width===1440||width===390)await page.screenshot({path:`outputs/visual-refresh/calculator-drawer-${width}.png`});
-  await page.getByRole('button',{name:'关闭条件设置'}).click();
+  await page.getByRole('button',{name:'关闭条件设置'}).click();await drawer.waitFor({state:'hidden'});
  }
  fixture.funds[0].direct.limit=50;
- const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/dashboard'));await page.clock.fastForward(nextDashboardRefresh(await page.evaluate(()=>Date.now())) - await page.evaluate(()=>Date.now()) + 1);await refreshed;
+ const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/dashboard'));await page.clock.fastForward(nextDashboardRefresh(await page.evaluate(()=>Date.now())) - await page.evaluate(()=>Date.now()) + 1);await refreshed;await page.locator('.calculator-final-plan').waitFor({state:'hidden'});
  check('Changed quotas hide stale execution table',await page.locator('.calculator-final-plan').count()===0);
  await page.getByRole('button',{name:'重新计算',exact:true}).click();check('Stale plan has direct re-edit path',await drawer.isVisible());await page.getByRole('button',{name:'生成方案'}).click();
  await drawer.waitFor({state:'hidden'});

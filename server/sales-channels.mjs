@@ -22,7 +22,10 @@ export const salesChannelEvidence = {
     directEvidence:'第6.1节：本基金D类基金份额暂不上线直销机构。',
     platforms:['腾讯理财通','京东金融'],
     reportedAt:'2026-10-16T14:56:50Z',
-    // Keep this manually confirmed allowance until replaced by new evidence.
+    reviewedThrough:'2026-10-18',
+    reviewedAt:'2026-10-18T13:00:04Z',
+    reviewNote:'用户再次确认天弘纳指D代销额度正常；此前待核验公告不撤销人工确认。',
+    // Keep this manually confirmed allowance until replaced by newer evidence.
     validity:'until_replaced',
     platformSource:'用户确认销售平台，非平台接口核验',
     limit:100,
@@ -40,7 +43,12 @@ export function applySalesChannels(fund, now=new Date(), quotaRule=null) {
   if(date>=chinaDate(new Date(evidence.reportedAt))) {
     const expired=evidence.validity!=='until_replaced' && +now-Date.parse(evidence.reportedAt)>36*3600000;
     agency={status:expired?'unknown':'open',limit:expired?null:evidence.limit,platforms:evidence.platforms,source:evidence.platformSource,sourceUrl:evidence.quotaSourceUrl,observedAt:evidence.reportedAt,validity:evidence.validity,availabilityBasis:'user_report',reason:expired?'销售平台信息待重新确认':evidence.platformSource,evidence:evidence.quotaEvidence,platformNote:'两个平台择一，合计最多计100元；平台实时额度及定投支持需下单前确认。',tiantian:fund.agency};
-    if(fund.direct?.pendingReview || [fund.direct,quotaRule].some(rule=>rule?.effectiveAt && rule.effectiveAt.slice(0,10)>evidence.quotaEffectiveFrom)) {
+    // A dated manual review covers existing notices, not future announcements.
+    // Missing notice dates remain unresolved rather than silently bypassing review.
+    const reviewedThrough = evidence.reviewedAt && +now >= Date.parse(evidence.reviewedAt) ? evidence.reviewedThrough : null;
+    const newPending = fund.direct?.pendingReview && (!reviewedThrough || !fund.direct.pendingPublishedAt || fund.direct.pendingPublishedAt > reviewedThrough);
+    const ruleCutoff = reviewedThrough || evidence.quotaEffectiveFrom;
+    if(newPending || [fund.direct,quotaRule].some(rule=>rule?.effectiveAt && rule.effectiveAt.slice(0,10)>ruleCutoff)) {
       agency={...agency,status:'unknown',limit:null,reason:'出现新的额度规则，原平台限额需重新核验'};
     }
   }

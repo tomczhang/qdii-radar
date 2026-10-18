@@ -6,6 +6,7 @@ import {attachShareScopes} from '../server/share-scopes.mjs';
 import {purchaseCandidates,selectedCandidates,calculatePurchasePlan,planSignature} from '../src/purchase-plan.mjs';
 import {totalQuota} from '../src/summary.mjs';
 import {fundDataIssues} from '../server/resilience.mjs';
+import {currentFund} from '../server/service.mjs';
 const now=new Date('2026-10-16T15:00:00Z');
 const fund={code:'022525',index:'nasdaq',name:'天弘纳斯达克100',share:'D',manager:'天弘基金',agency:{status:'unavailable',source:'天天基金',observedAt:now.toISOString()},direct:{status:'open',limit:100},fees:{annualRate:0.8,subscription:[{min:0,max:null,standardRate:0,agencyRate:0}]}};
 const current=()=>attachShareScopes([applySalesChannels(fund,now)],[],now)[0];
@@ -44,6 +45,32 @@ test('长期额度遇到新额度公告仍需核验，不掩盖规则变化',()=
   assert.equal(updated.agency.status,'unknown');assert.equal(updated.agency.limit,null);
   assert.ok(fundDataIssues(updated,new Date('2026-10-21T00:00:00Z')).includes('代销额度待确认'));
  }
+});
+
+test('天弘纳指D人工复核覆盖旧待核验公告，但不覆盖未来或无日期公告',()=>{
+ const at=new Date('2026-10-18T14:00:00Z');
+ const pending={pendingReview:true,pendingPublishedAt:'2026-09-01',effectiveAt:'2026-06-01T00:00:00+08:00'};
+ const reviewed=applySalesChannels({...fund,direct:pending},at);
+ assert.equal(reviewed.agency.status,'open');assert.equal(reviewed.agency.limit,100);
+ assert.equal(reviewed.agency.observedAt,salesChannelEvidence['022525'].reportedAt);
+ assert.equal(reviewed.direct.status,'unavailable');
+ assert.ok(!fundDataIssues(reviewed,at).some(issue=>issue.startsWith('代销额度')));
+ for(const pendingPublishedAt of ['2026-10-19',undefined]) {
+  const updated=applySalesChannels({...fund,direct:{...pending,pendingPublishedAt}},new Date('2026-10-20'));
+  assert.equal(updated.agency.status,'unknown');assert.equal(updated.agency.limit,null);
+ }
+ assert.equal(applySalesChannels({...fund,direct:pending},new Date('2026-10-17')).agency.status,'unknown');
+ assert.equal(applySalesChannels({...fund,direct:pending},new Date('2026-10-20'),{effectiveAt:'2026-10-19T00:00:00+08:00'}).agency.status,'unknown');
+ assert.equal(correctSalesHistory('022525','agency',{date:'2026-10-15',status:'open',limit:100}).status,'unknown');
+});
+
+test('当前基金携带最新待核验公告日期，人工确认不被旧公告重置',()=>{
+ const at=new Date('2026-10-18T14:00:00Z');
+ const notices=[{publishedAt:'2026-09-01'},{publishedAt:'2026-03-31'}];
+ const store={snapshot:()=>({...fund,observedAt:at.toISOString()}),activeRule:()=>({status:'paused',limit:null,effectiveAt:'2026-06-01T00:00:00+08:00'}),pendingNotices:()=>notices,getMeta:()=>({complete:true,checkedAt:at.toISOString()})};
+ assert.equal(currentFund(store,fund,at).agency.status,'open');
+ notices.push({publishedAt:'2026-10-19'});
+ assert.equal(currentFund(store,fund,new Date('2026-10-20')).agency.status,'unknown');
 });
 
 test('标普D只在已确认代销平台计100元，不再混入直销及其历史',()=>{

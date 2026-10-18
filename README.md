@@ -193,7 +193,7 @@ Resend 的每封邮件使用持久化请求内容和独立的 `qdii-radar/` 幂�
 
 `.data/radar.sqlite` 保存快照、公告规则、事件、订阅、队列及任务状态；`.data/notices` 保存公告，`.data/market` 保存最近原始响应。定期备份整个 `.data`（SQLite在线备份应使用 backup API或停服务后复制）。`.env`、`.data` 均为私有文件且不进入前端构建。开发服务器也禁止直接读取这些路径。
 
-仓库提供 Dockerfile 和 compose.yaml，可使用 `docker compose up -d --build` 启动常驻服务并挂载数据卷；本次未部署到公网。正式域名的 `PUBLIC_BASE_URL` 应为 HTTPS，并配置反向代理证书；仅在后端不能被绕过代理访问时设置 `TRUST_PROXY_HOPS=1`。当前是单实例 SQLite 设计，多实例部署前需共享数据库及统一队列。
+仓库提供 Dockerfile 和 compose.yaml，可使用 `docker compose up -d --build` 启动常驻服务并挂载数据卷。Compose 默认仅监听 `127.0.0.1:4387`，通过反向代理对外访问。正式域名的 `PUBLIC_BASE_URL` 应为 HTTPS，并配置反向代理证书；仅在后端不能被绕过代理访问时设置 `TRUST_PROXY_HOPS=1`。`qdii.tomcattravel.com` 的服务器配置、DNS/证书开通和更新备份命令见 [部署运维](docs/deployment.md)。当前是单实例 SQLite 设计，多实例部署前需共享数据库及统一队列。
 
 ## 购买计算器：分步输入与本地快照
 

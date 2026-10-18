@@ -20,14 +20,14 @@ try{
  check('Status and achievement rate share one card',await page.locator('.plan-status').count()===1&&await page.locator('.plan-budget').count()===1&&await page.locator('.plan-status.plan-budget').count()===1);
  check('Shortfall always exposes 74% and all three budget amounts',(await page.locator('.plan-outcome').innerText()).includes('74.0%')&&(await page.locator('.plan-budget-metrics').innerText()).includes('¥10,000')&&(await page.locator('.plan-budget-metrics').innerText()).includes('¥7,400')&&(await page.locator('.plan-budget-metrics').innerText()).includes('¥2,600'));
  const n=page.locator('[data-allocation-index="nasdaq"]'),s=page.locator('[data-allocation-index="sp500"]');
- const nt=page.locator('[data-timing-index="nasdaq"]'),st=page.locator('[data-timing-index="sp500"]');
+ const nt=n,st=s;
  check('Index achievement rates are inside the overall budget card',await page.locator('.plan-outcome [data-allocation-index]').count()===2&&await page.locator('.plan-timing [data-allocation-index]').count()===0);
  check('Nasdaq marked achievable without extra time',(await n.innerText()).includes('100.0%')&&(await nt.innerText()).includes('无需额外补齐'));
  check('S&P distinguishes 48% from the 2600 shortfall',(await s.innerText()).includes('48.0%')&&(await s.innerText()).includes('缺口 ¥2,600'));
  check('S&P catchup uses approximate calendar months',(await st.locator('.allocation-catchup').innerText()).includes('约 1 个月'));
- check('Headline distinguishes achievable index from shortfall; total duration stays separate',(await page.locator('.plan-timing > strong').innerText()).includes('纳斯达克100可达成，标普500有缺口')&&(await page.locator('.plan-total-duration').innerText()).includes('预计约 2 个月'));
+ check('Duration is merged into achievement card without a separate timing block',await page.locator('.plan-timing').count()===0&&(await page.locator('.plan-outcome .plan-duration-summary').innerText()).includes('预计约 2 个月'));
  check('New monthly contributions are explicitly excluded',(await page.locator('.plan-monthly-continuation').innerText()).includes('不叠加下个月的新预算')&&(await page.locator('.plan-monthly-continuation').innerText()).includes('继续累积'));
- check('Catchup specifies amount and ongoing pace',(await st.innerText()).includes('还差 ¥2,600')&&(await st.innerText()).includes('每个可申购日 ¥120'));
+ check('Catchup specifies amount and ongoing pace',(await st.innerText()).includes('缺口 ¥2,600')&&(await st.innerText()).includes('每个可申购日 ¥120'));
  check('Monthly warning quantifies recurring shortfall',(await page.locator('.plan-monthly-continuation').innerText()).includes('每月将新增 ¥2,600 缺口'));
  check('Per-index breakdown is not duplicated',await page.locator('.plan-allocation').count()===1);
  for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1100});check('Outcome layout fits '+width,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
@@ -42,14 +42,14 @@ try{
  await page.getByRole('radio',{name:/每月固定投入/}).check();
  await page.getByLabel('每月投入预算（元）').fill('2000');await page.getByRole('button',{name:'生成方案'}).click();await page.getByRole('dialog',{name:'设置投入条件'}).waitFor({state:'hidden'});
  check('Fully achievable plan also leads with achievement percentage',(await page.locator('.plan-outcome').innerText()).includes('100.0%')&&await page.locator('[data-plan-status="achievable"]').count()===1);
- check('Achievable headline uses months instead of trading sessions',(await page.locator('.plan-timing > strong').innerText())==='预计约 1 个月投完'&&!(await page.locator('.plan-timing').innerText()).includes('20 个扣款日'));
- check('Completion and timing precede fee preferences',await page.locator('.purchase-calculator').evaluate(el=>{const steps=el.querySelectorAll('.plan-result-step');return steps.length===4&&steps[0].contains(el.querySelector('.plan-budget'))&&steps[0].contains(el.querySelector('.plan-timing'))&&steps[1].contains(el.querySelector('.plan-preferences'));}));
+ check('Achievable headline uses months instead of trading sessions',(await page.locator('.plan-duration-summary strong').innerText())==='预计约 1 个月投完'&&!(await page.locator('.plan-duration-summary').innerText()).includes('20 个扣款日'));
+ check('Completion and timing precede fee preferences',await page.locator('.purchase-calculator').evaluate(el=>{const steps=el.querySelectorAll('.plan-result-step');return steps.length===4&&steps[0].contains(el.querySelector('.plan-budget'))&&steps[0].contains(el.querySelector('.plan-duration-summary'))&&steps[1].contains(el.querySelector('.plan-preferences'));}));
  fixture.funds[1].direct={status:'paused',limit:null};
  let refreshed=page.waitForResponse(r=>r.url().endsWith('/api/dashboard'));await page.clock.fastForward(nextDashboardRefresh(await page.evaluate(()=>Date.now())) - await page.evaluate(()=>Date.now()) + 1);await refreshed;
  await page.getByRole('button',{name:'重新计算',exact:true}).click();
  await page.getByRole('button',{name:'生成方案'}).click();await page.getByRole('dialog',{name:'设置投入条件'}).waitFor({state:'hidden'});
  check('Blocked plan still exposes partial percentage',(await page.locator('.plan-outcome').innerText()).includes('50.0%'));
- check('Blocked side has no invented completion week',(await st.innerText()).includes('补齐时间无法估算')&&await st.locator('.allocation-catchup').count()===0);
+ check('Blocked side has no invented completion week',(await st.innerText()).includes('补齐时间无法估算')&&!(await page.locator('.plan-duration-summary').innerText()).includes('预计约'));
  fixture.funds[0].direct={status:'paused',limit:null};
  refreshed=page.waitForResponse(r=>r.url().endsWith('/api/dashboard'));await page.clock.fastForward(nextDashboardRefresh(await page.evaluate(()=>Date.now())) - await page.evaluate(()=>Date.now()) + 1);await refreshed;
  await page.getByRole('button',{name:'重新计算',exact:true}).click();
