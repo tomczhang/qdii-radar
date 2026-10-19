@@ -1,5 +1,5 @@
 import React, {useEffect, useId, useRef, useState} from 'react';
-import {ArrowDown, ChevronDown} from 'lucide-react';
+import {ArrowDown, ChevronDown, CircleHelp} from 'lucide-react';
 import {channelBadge, shareRuleBadge, groupRules, hasChannel, groupSortValue, sortGroupMembers} from '../fund-groups.mjs';
 import {feePercent} from '../../shared/fees.mjs';
 import {STABILITY_WINDOW_DAYS} from '../../shared/config.mjs';
@@ -26,6 +26,30 @@ function ChannelFilter({channels,onChange}) {
   </details>;
 }
 function RuleBadge({badge}) {return <span className={badge.tone==='empty'?'rule-empty':badge.tone==='shared'?'quota-scope-badge shared':`rule-badge ${badge.tone}`} title={badge.detail}>{badge.label}</span>;}
+function AgencyBadge({group}) {
+  const badge=channelBadge(group,'agency'), members=group.members.filter(f=>f.agency?.platforms?.length);
+  const [open,setOpen]=useState(false), [above,setAbove]=useState(false), ref=useRef(null), id=useId();
+  const show=()=>{setAbove(ref.current.getBoundingClientRect().bottom + 150 > window.innerHeight - 80);setOpen(true);};
+  useEffect(()=>{
+    if(!open)return;
+    const close=e=>{if(!ref.current?.contains(e.target))setOpen(false);};
+    const escape=e=>{if(e.key==='Escape'){e.stopPropagation();setOpen(false);}};
+    document.addEventListener('pointerdown',close);
+    document.addEventListener('keydown',escape);
+    return ()=>{document.removeEventListener('pointerdown',close);document.removeEventListener('keydown',escape);};
+  },[open]);
+  if(!members.length)return <RuleBadge badge={badge}/>;
+  return <span className="agency-help" ref={ref} onMouseEnter={show} onMouseLeave={()=>setOpen(false)}>
+    <button type="button" className={`rule-badge ${badge.tone} agency-help-trigger`} aria-label={`${group.name}代销渠道说明`} aria-describedby={open?id:undefined} onFocus={show} onBlur={()=>setOpen(false)} onClick={show}>{badge.label}<CircleHelp size={12} aria-hidden="true"/></button>
+    {open&&<span className={`agency-help-tooltip${above?' above':''}`} role="tooltip" id={id}>
+      {members.map(f=><span className="group-agency-platforms" key={f.code} data-platform-fund={f.code}>
+        <span>{f.share ? `${f.share} 类代销` : '代销渠道'}：{f.agency.platforms.join(' / ')}</span>
+        {f.agency.availabilityBasis==='user_report'&&<small>用户确认 · 平台择一</small>}
+        {f.agency.status==='unknown'&&<small>当前额度待核验</small>}
+      </span>)}
+    </span>}
+  </span>;
+}
 function GroupRow({group, sort, renderShares}) {
   const [expanded,setExpanded] = useState(false), id = useId();
   const rules = groupRules(group), shareRule=shareRuleBadge(group), key = sort.split(':')[0], value = groupSortValue(group,key);
@@ -33,14 +57,16 @@ function GroupRow({group, sort, renderShares}) {
   const rates = group.members.filter(f=>!f.fees?.stale).map(f=>f.fees?.annualRate).filter(Number.isFinite);
   const rate = rates.length ? Math.min(...rates) === Math.max(...rates) ? feePercent(rates[0]) : `${feePercent(Math.min(...rates))}–${feePercent(Math.max(...rates))}` : '—';
   return <article className={`fund-group${expanded?' is-expanded':''}`} data-group-codes={group.id}>
-    <button className="fund-group-toggle" aria-expanded={expanded} aria-controls={id} onClick={()=>setExpanded(!expanded)}>
-      <span className="group-identity"><strong>{group.name}</strong><span>{group.shares} · {group.members.length} 个份额</span>{group.members.filter(f=>f.dataIssues?.length || f.stale).map(f=><span className="fund-issue-text" key={f.code}>{f.share}（{f.code}）：{f.dataIssues?.join('；') || '数据待更新'}</span>)}</span>
+    <div className="fund-group-heading">
+      <button className="fund-group-toggle" aria-label={`${expanded?'收起':'展开'}${group.name}份额明细`} aria-expanded={expanded} aria-controls={id} onClick={()=>setExpanded(!expanded)}/>
+      <span className="group-identity"><strong>{group.name}</strong><span className="group-share-meta"><span className="group-share-badges">{group.members.map(f=><span className="share-tag" key={f.code} aria-label={f.share ? `${f.share}类份额` : '人民币份额'}>{f.share || '人民币'}</span>)}</span><span>{group.members.length} 个份额</span></span>{group.members.filter(f=>f.dataIssues?.length || f.stale).map(f=><span className="fund-issue-text" key={f.code}>{f.share}（{f.code}）：{f.dataIssues?.join('；') || '数据待更新'}</span>)}</span>
       <span className="group-quota"><span className="group-mobile-label">合计 / 日 · 已去重</span><strong>{money(group.total.amount)}</strong><small className={partial || group.total.amount==null ? 'quota-needs-review' : 'quota-unit'}>{group.total.amount==null?'额度待核验':partial?'已知额度 · 部分待确认':group.total.amount===0?'当前无已知可买额度':'元 / 日 · 已去重'}</small>{sortLabels[key]&&<small className="group-sort-value">{sortLabels[key]} {key.includes('Fee')?feePercent(value):key.startsWith('y')?value==null?'—':`${value.toFixed(2)}%`:money(value)}</small>}</span>
-      <span className="group-channels"><span className="group-mobile-label">渠道</span><span className="group-badges">{['direct','agency'].map(channel=><RuleBadge key={channel} badge={channelBadge(group,channel)}/>)}</span>{rules.channel==='直销 + 代销可叠加' && hasChannel(group,'direct') && hasChannel(group,'agency') && <RuleBadge badge={{label:'额度可叠加',tone:'neutral',detail:rules.channel}}/>}</span>
+      <span className="group-channels"><span className="group-mobile-label">渠道</span><span className="group-badges"><RuleBadge badge={channelBadge(group,'direct')}/><AgencyBadge group={group}/></span>
+        {rules.channel==='直销 + 代销可叠加' && hasChannel(group,'direct') && hasChannel(group,'agency') && <RuleBadge badge={{label:'额度可叠加',tone:'neutral',detail:rules.channel}}/>}</span>
       <span className="group-share-rule"><span className="group-mobile-label">份额规则</span><RuleBadge badge={shareRule}/>{shareRule.label==='待确认'&&group.members.some(f=>['direct','agency'].some(c=>f[c]?.scope?.basis==='default'))&&<small>默认按独立计算</small>}</span>
       <span className="group-fee"><span className="group-mobile-label">年度费率</span><strong>{rate}</strong><small>{rates.length<group.members.length?'部分费率待更新':'各份额费率范围'}</small></span>
       <span className="group-expand">{expanded?'收起':'展开'}<ChevronDown size={16}/></span>
-    </button>
+    </div>
     <div id={id} hidden={!expanded} className="fund-group-details">
       {expanded&&<>
         <div className="mobile-group-facts"><span>份额规则：<RuleBadge badge={shareRule}/>{shareRule.label==='待确认' && '（按默认口径计算）'}</span><span>年度费率：{rate}{rates.length<group.members.length && ' · 部分费率待更新'}</span></div>

@@ -37,7 +37,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
   useEffect(()=>{
     if(restored.current || !snapshot || !funds.length)return;
     restored.current=true;
-    if(snapshot.needsRecalculation){setStorageNotice('已恢复上次输入；原无比例模式已更新为偏标普，请重新计算。');setConditionsOpen(true);return;}
+    if(snapshot.needsRecalculation){setStorageNotice(snapshot.recalculationNotice || '已恢复上次输入，请重新计算。');setConditionsOpen(true);return;}
     if(signature!==snapshot.signature){setStorageNotice('已恢复上次输入；额度、费率或候选基金已变化，请重新计算。');setConditionsOpen(true);return;}
     try{setResult(calculatePurchasePlan(input,selected));setStorageNotice('已恢复上次计算快照，并核对当前额度。');}catch{setStorageNotice('已恢复上次输入，请重新计算。');setConditionsOpen(true);}
   },[snapshot,funds.length,signature,input,selected]);
@@ -128,7 +128,7 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
     editBaseline.current=null;setConditionsOpen(false);setRevealVersion(version=>version+1);
   }
   const ratioSummary=input.ratioMode==='custom'?`纳指 ${input.ratio}% / 标普 ${100-Number(input.ratio)}%`:({'nasdaq':'只买纳指','sp500':'只买标普','any-sp500':'不限比例偏标普','any-nasdaq':'不限比例偏纳指'}[input.ratioMode]);
-  const timeSummary=input.mode==='monthly'?`每月固定投入 · ${input.purchaseDays} 个扣款日`:input.mode==='steady'?`${input.weeks} 周分批 · ${input.frequency==='weekly'?'每周一次':'每个可申购日'}`:'资金尽快投完';
+  const timeSummary=input.mode==='monthly'?`每月固定投入 · ${input.purchaseDays} 个扣款日`:'资金尽快投完';
   return <section ref={calculatorRef} className="purchase-calculator" aria-label="购买计算器">
     <div className="calculator-conditions-summary">
       <div><span>投入条件</span><h2>{input.amount?`${input.mode==='monthly'?'每月':'计划投入'} ${money(Number(input.amount))}`:'设置条件，生成投入方案'}</h2><p>{timeSummary} · {ratioSummary} · {input.channel==='both'?'代销+直销':input.channel==='agency'?'代销':'直销'} · {input.selectedManagers===null?'全部基金公司':`已选 ${input.selectedManagers.length} 家基金公司`}</p></div>
@@ -145,10 +145,8 @@ export default function PurchaseCalculator({funds, updatedAt, onDetail, favorite
       </section>
       <section className="calculator-step" aria-label="02 定时间">
         <StepTitle number="02">定时间</StepTitle>
-        <fieldset className="calculator-mode" aria-label="投入时间"><div className="calculator-mode-options">{[['monthly','每月固定投入','按每月预算安排扣款'],['fast','资金尽快投完','每个可申购日尽量投入'],['steady','资金稳健分批','自己设定周期，分散投入时点']].map(([value,label,note])=><label key={value} className={input.mode===value?'selected':''}><input type="radio" name="plan-mode" value={value} checked={input.mode===value} onChange={()=>update('mode',value)}/><span><strong>{label}</strong><small>{note}</small></span></label>)}</div></fieldset>
+        <fieldset className="calculator-mode" aria-label="投入时间"><div className="calculator-mode-options">{[['monthly','每月固定投入','按每月预算安排扣款'],['fast','资金尽快投完','每个可申购日尽量投入']].map(([value,label,note])=><label key={value} className={input.mode===value?'selected':''}><input type="radio" name="plan-mode" value={value} checked={input.mode===value} onChange={()=>update('mode',value)}/><span><strong>{label}</strong><small>{note}</small></span></label>)}</div></fieldset>
         {input.mode==='monthly' && <div className="calculator-monthly-settings"><label className="monthly-days">每月计划扣款日（天）<input type="number" min="1" max="23" step="1" required value={input.purchaseDays} onChange={e=>update('purchaseDays',e.target.value)}/></label><p>默认按20天测算，请按当月可申购日调整；已有持仓不参与每月重复分配。</p></div>}
-        {input.mode==='steady' && <div className="calculator-fields paced-fields"><label>期望投完周期（周）<input type="number" required min="1" max="520" step="1" value={input.weeks} onChange={e=>update('weeks',e.target.value)}/></label><label>定投频率<select aria-label="定投频率" value={input.frequency} onChange={e=>update('frequency',e.target.value)}><option value="weekly">每周一次</option><option value="daily">每个可申购日</option></select></label></div>}
-        {input.mode==='steady' && <p className="calculator-risk">“稳健分批”仅指投入节奏；定投不能消除股票基金的亏损风险。<a href="https://www.csrc.gov.cn/csrc/c101883/c1030398/content.shtml" target="_blank" rel="noreferrer">了解定投风险 ↗</a></p>}
       </section>
       <section className="calculator-step" aria-label="03 定比例">
         <StepTitle number="03">定比例</StepTitle>

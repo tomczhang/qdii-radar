@@ -1,0 +1,10 @@
+[
+  {
+    "clientId": "qdii-radar",
+    "name": "QDII 额度雷达",
+    "kind": "web",
+    "redirectUris": ["https://qdii.tomcattravel.com/auth/callback"],
+    "postLogoutRedirectUris": ["https://qdii.tomcattravel.com/auth/logout/callback"],
+    "secretEnv": "QDII_RADAR_OIDC_CLIENT_SECRET"
+  }
+]

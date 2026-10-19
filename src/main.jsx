@@ -17,6 +17,7 @@ import PurchaseCalculator from './components/PurchaseCalculator.jsx';
 import InvestmentRisk from './components/InvestmentRisk.jsx';
 import UpdateStatus from './components/UpdateStatus.jsx';
 import PublisherFollow from './components/PublisherFollow.jsx';
+import { AccountButton, AccountPage } from './components/Account.jsx';
 import {dashboardRefreshDelay} from '../shared/refresh-schedule.mjs';
 const cn = (...values) => values.filter(Boolean).join(' ');
 const number = (n) => new Intl.NumberFormat('zh-CN').format(n);
@@ -214,7 +215,7 @@ function App() {
   const [dataMeta, setDataMeta] = useState({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [page, setPage] = useState('overview');
+  const [page, setPage] = useState(() => { const requested = new URLSearchParams(window.location.search).get('page'); return ['calculator', 'changes'].includes(requested) ? requested : 'overview'; });
   const [tab, setTab] = useState('all');
   const [venue, setVenue] = useState('otc');
   const [query, setQuery] = useState('');
@@ -257,7 +258,7 @@ function App() {
     notify(saved.deliveryStatus === 'awaiting_configuration' ? '订阅已保存到服务器 · 邮件服务待配置' : saved.verified ? '提醒设置已更新' : '订阅已保存，请查收验证邮件');
   }
   async function removeAlert(id) { await api(`/api/subscriptions/${id}`, { method: 'DELETE' }); setAlerts(prev => prev.filter(a => a.id !== id)); setModal(null); notify('已删除这条提醒'); }
-  function changePage(next) { setPage(next); setQuery(''); setTab('all'); setOnlyOpen(true); setChannels([]); }
+  function changePage(next) { setPage(next); setQuery(''); setTab('all'); setOnlyOpen(true); setChannels([]); if (new URLSearchParams(window.location.search).has('page')) window.history.replaceState(null, '', next === 'overview' ? '/' : `/?page=${next}`); }
   const visible = useMemo(() => {
     const [key, direction] = sort.split(':');
     const tieBreak = (a, b) => a.code.localeCompare(b.code);
@@ -296,7 +297,7 @@ function App() {
     </aside>
     <div className="workspace">
       <div className="workspace-header">
-      <header className="topbar"><div className="breadcrumb"><span>投资工具</span><ChevronRight size={14} /><strong>{nav.find(n => n.id === page)?.label}</strong></div><button className="mobile-brand" onClick={() => changePage('overview')}><Radar size={23} />QDII 额度雷达</button><div className="topbar-right"><PublisherFollow /><UpdateStatus meta={dataMeta} formatTime={dateTime} /><button className="top-help icon-button" aria-label="数据说明" onClick={() => setModal({ type: 'info' })}><HelpCircle size={18} /></button></div></header>
+      <header className="topbar"><div className="breadcrumb"><span>投资工具</span><ChevronRight size={14} /><strong>{nav.find(n => n.id === page)?.label}</strong></div><button className="mobile-brand" onClick={() => changePage('overview')}><Radar size={23} />QDII 额度雷达</button><div className="topbar-right"><PublisherFollow /><UpdateStatus meta={dataMeta} formatTime={dateTime} /><button className="top-help icon-button" aria-label="数据说明" onClick={() => setModal({ type: 'info' })}><HelpCircle size={18} /></button><AccountButton page={page} /></div></header>
       </div>
       <main>
         {(loading || loadError) && <div className="live-status" role="status"><Info size={15} />{loading ? '正在加载真实数据…' : loadError}</div>}
@@ -333,4 +334,4 @@ function App() {
     {storageError && <div className="storage-error" role="alert">浏览器无法保存本机设置，本次更改将在关闭页面后丢失。</div>}
   </div>;
 }
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(['/login', '/register'].includes(window.location.pathname) ? <AccountPage /> : <App />);

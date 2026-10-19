@@ -1,5 +1,5 @@
 export const SNAPSHOT_KEY = 'qdii-radar:purchase-calculator:v1';
-export const initialInput = {amount:'',heldNasdaq:'',heldSp500:'',ratio:50,ratioMode:'custom',customRatio:50,mode:'monthly',channel:'direct',strategy:'fees',returnYears:1,holdingYears:1,feeBasis:'annual',frequency:'weekly',weeks:12,purchaseDays:20,selectedManagers:null,includeSmallQuotas:false};
+export const initialInput = {amount:'',heldNasdaq:'',heldSp500:'',ratio:70,ratioMode:'custom',customRatio:70,mode:'monthly',channel:'direct',strategy:'fees',returnYears:1,holdingYears:1,feeBasis:'annual',frequency:'weekly',weeks:12,purchaseDays:20,selectedManagers:null,includeSmallQuotas:false};
 
 // Only restore known fields. Never render a stored result as a current quote;
 // the UI recomputes it after checking the latest candidate signature.
@@ -27,11 +27,14 @@ export function readPurchaseSnapshot(storage) {
     if(raw.selectedManagers!==null && (!Array.isArray(raw.selectedManagers)||!raw.selectedManagers.every(m=>typeof m==='string')))return null;
     if(typeof raw.includeSmallQuotas!=='boolean')return null;
     Object.assign(input,{holdingYears:raw.holdingYears,selectedManagers:raw.selectedManagers,includeSmallQuotas:raw.includeSmallQuotas});
-    const needsRecalculation=input.ratioMode==='any';
-    if(needsRecalculation)input.ratioMode='any-sp500';
+    const migrations=[];
+    if(input.ratioMode==='any'){input.ratioMode='any-sp500';migrations.push('原无比例模式已更新为偏标普');}
+    if(input.mode==='steady'){input.mode='fast';migrations.push('资金稳健分批已移除，已切换为资金尽快投完');}
+    const needsRecalculation=migrations.length>0;
+    const recalculationNotice=needsRecalculation?`已恢复上次输入；${migrations.join('；')}，请核对条件后重新计算。`:null;
     input.ratio=input.ratioMode.startsWith('any-')?'any':input.ratioMode==='nasdaq'?100:input.ratioMode==='sp500'?0:Number(input.customRatio);
     const choices=Object.fromEntries(Object.entries(snapshot.choices || {}).filter(([,value])=>value===false||typeof value==='string'));
-    return {input,choices,signature:snapshot.signature,savedAt:snapshot.savedAt,needsRecalculation};
+    return {input,choices,signature:snapshot.signature,savedAt:snapshot.savedAt,needsRecalculation,recalculationNotice};
   } catch { return null; }
 }
 

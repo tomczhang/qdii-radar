@@ -46,9 +46,11 @@ try {
   assert.equal(events.at(-1).name, 'calculator_calculate_click', 'invalid submission still counts as click intent');
   await page.getByLabel('每月投入预算（元）').fill('1234');
   await page.getByRole('button', { name: '生成方案', exact: true }).click(); await waitCount(8);
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
   assert.equal(await page.getByRole('dialog').isVisible(), false);
   await page.getByRole('button', { name: '修改条件', exact: true }).click();
   await page.getByLabel('每月投入预算（元）').focus(); await page.keyboard.press('Enter'); await waitCount(9);
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
   assert.equal(events.filter(e => e.name === 'calculator_calculate_click').length, 3, 'Enter submits once');
   await page.reload({ waitUntil: 'networkidle' }); await waitCount(10);
   await nav('购买计算器').click(); await waitCount(12);
@@ -68,6 +70,7 @@ try {
   await page.getByRole('button', { name: '修改条件', exact: true }).click();
   await page.getByLabel('每月投入预算（元）').fill('500');
   await page.getByRole('button', { name: '生成方案', exact: true }).click();
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
   assert.equal(await page.getByRole('dialog').isVisible(), false);
   assert.equal(events.length, 14);
   // No ID: do not even load the third-party script.

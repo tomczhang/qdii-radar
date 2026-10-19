@@ -5,7 +5,7 @@ const memory=()=>{const values=new Map();return {getItem:key=>values.get(key)??n
 test('新用户默认每月固定投入，历史快照保留用户选择的投入模式',()=>{
  assert.equal(initialInput.mode,'monthly');
  const storage=memory();
- for(const mode of ['fast','steady','monthly']){
+ for(const mode of ['fast','monthly']){
   savePurchaseSnapshot(storage,{...initialInput,amount:8000,mode},{},{signature:'x'});
   assert.equal(readPurchaseSnapshot(storage).input.mode,mode);
  }
@@ -41,4 +41,20 @@ test('指数偏好随快照还原；旧无比例快照保留输入并要求确�
  }
  savePurchaseSnapshot(storage,{...initialInput,amount:8000,ratioMode:'any',ratio:'any'},{pool:false},{signature:'x'});
  const legacy=readPurchaseSnapshot(storage);assert.equal(legacy.input.amount,8000);assert.equal(legacy.input.ratioMode,'any-sp500');assert.equal(legacy.needsRecalculation,true);assert.deepEqual(legacy.choices,{pool:false});
+});
+
+test('已移除的稳健分批快照保留一次性预算并要求核对重算，兼容同时迁移旧比例',()=>{
+ const storage=memory();
+ for(const ratioMode of ['custom','any']){
+  savePurchaseSnapshot(storage,{...initialInput,mode:'steady',amount:8000,heldNasdaq:2000,ratioMode,selectedManagers:['甲']},{pool:false},{signature:'x'});
+  const restored=readPurchaseSnapshot(storage);
+  assert.equal(restored.input.mode,'fast');
+  assert.equal(restored.input.amount,8000);
+  assert.equal(restored.input.heldNasdaq,2000);
+  assert.deepEqual(restored.input.selectedManagers,['甲']);
+  assert.deepEqual(restored.choices,{pool:false});
+  assert.equal(restored.needsRecalculation,true);
+  assert.match(restored.recalculationNotice,/资金稳健分批已移除/);
+  if(ratioMode==='any'){assert.equal(restored.input.ratioMode,'any-sp500');assert.match(restored.recalculationNotice,/偏标普/);}
+ }
 });

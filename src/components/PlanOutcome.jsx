@@ -1,4 +1,5 @@
 import React from 'react';
+import PlanAllocationPie from './PlanAllocationPie.jsx';
 import {formatPlanDuration} from '../plan-duration.mjs';
 import {CircleCheck,TriangleAlert,CircleX} from 'lucide-react';
 const money = n => `¥${new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2}).format(n)}`;
@@ -7,7 +8,6 @@ const indexName = key => key==='nasdaq'?'纳斯达克100':'标普500';
 
 export default function PlanOutcome({result,status,children}) {
   const horizon=result.monthly?'本月':result.desiredWeeks?`${result.desiredWeeks}周内`:'完整计划';
-  const after=result.monthly?'本月计划结束后':'设定周期结束后';
   const duration=periods=>formatPlanDuration(periods,result.weekly);
   const Icon=status==='achievable'?CircleCheck:status==='blocked'?CircleX:TriangleAlert;
   return <>
@@ -16,14 +16,7 @@ export default function PlanOutcome({result,status,children}) {
       <progress aria-label="整体预算达成率" max="100" value={result.achievementPercent}/>
       <div className="plan-budget-metrics"><div><span>预算</span><b>{money(result.amount)}</b></div><div><span>预计可投入</span><b>{money(result.amount-result.shortfall)}</b></div><div><span>缺口</span><b>{money(result.shortfall)}</b></div></div>
       <div className="plan-duration-summary"><span>{result.desiredWeeks ? `计划周期 ${formatPlanDuration(result.desiredWeeks,true)} · ${result.weekly?'每周扣款一次':'每个可申购日扣款'}` : '本笔预算从开始到全部投完'}</span><strong>{result.blocked ? '存在无额度预算，投完时间暂无法估算' : `预计${duration(result.periods)}投完`}</strong></div>
-      <div className="plan-allocation">{result.allocations.map(a=><div key={a.index} data-allocation-index={a.index} className={a.blocked?'blocked':a.shortfall>0?'partial':a.amount?'achievable':'unassigned'}>
-        <div className="allocation-heading"><span>{indexName(a.index)}</span><em>{!a.amount?'未分配预算':a.blocked?'暂无额度':a.shortfall>0?'有缺口':`${horizon}可达成`}</em></div>
-        <b className="plan-achievement">预算达成率 {a.achievementPercent===null?'—':percent(a.achievementPercent)}</b>
-        {a.achievementPercent!==null&&<progress aria-label={`${indexName(a.index)}预算达成率`} max="100" value={a.achievementPercent}/>}
-        <p className="allocation-budget">{horizon}可投入 <b>{money(a.achievableAmount)}</b> / 预算 {money(a.amount)}</p>
-        <b className="allocation-shortfall">缺口 {money(a.shortfall)}</b>
-        {!a.amount ? <small>未分配预算，不计算达成率，无需补齐。</small> : a.blocked ? <p className="allocation-catchup">当前没有可用额度，补齐时间无法估算，需等待额度开放。</p> : a.shortfall>0 ? <p className="allocation-catchup">按{result.weekly?'每周':'每个可申购日'} <b>{money(a.perPeriod)}</b> 继续投入，{after}还需 <b>{duration(a.extraPeriods)}</b> 补齐。</p> : <p className="allocation-catchup">预算可全部投入，无需额外补齐。</p>}
-      </div>)}</div>
+      <PlanAllocationPie result={result} horizon={horizon}/>
       <p>{result.preferredIndex?`不设固定比例，在同一期限内优先买${indexName(result.preferredIndex)}，额度不足时由另一侧补足。`:result.unrestricted?'不限指数比例，预算按可用额度分配。':'按设定比例分别测算，不把一侧的余量用于补另一侧。'}这是按当前额度测算的预计达成率，不代表已完成扣款。</p>
       {result.targetUnreachable&&<p>预算达成率仅衡量投入金额；仅靠新增资金无法达到目标比例。按申请金额计算，完成后纳指占比约 {result.finalNasdaqPercent.toFixed(1)}%。</p>}
       {result.unallocated>0&&<p>暂无可用额度，{money(result.unallocated)} 预算尚未分配至指数，补齐时间无法估算。</p>}

@@ -8,6 +8,7 @@ import { openStore } from './store.mjs';
 import { createMailService } from './mail.mjs';
 import { getCatalog, dashboard, seedRules, startScheduler, synchronize } from './service.mjs';
 import { digest } from './domain.mjs';
+import { accountConfig, installAccountAuth } from './auth.mjs';
 
 export async function createApplication({ store = openStore(), mail = createMailService(store), startJobs = true, development = process.env.NODE_ENV !== 'production' } = {}) {
   const app = express();
@@ -18,6 +19,7 @@ export async function createApplication({ store = openStore(), mail = createMail
   const portIndex = process.argv.indexOf('--port');
   const port = Number(portIndex >= 0 ? process.argv[portIndex + 1] : process.env.PORT || 4387);
   const origin = process.env.PUBLIC_BASE_URL || `http://localhost:${port}`;
+  const authConfig = accountConfig(process.env, origin);
   const adminToken = process.env.ADMIN_TOKEN;
   seedRules(store);
   app.use((req, res, next) => {
@@ -25,11 +27,9 @@ export async function createApplication({ store = openStore(), mail = createMail
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('X-Frame-Options', 'DENY');
     if (req.path.startsWith('/api')) res.setHeader('Cache-Control', 'no-store');
-    if (['POST', 'PATCH', 'DELETE'].includes(req.method) && req.headers.origin && req.headers.origin !== new URL(origin).origin && req.headers.origin !== `${req.protocol}://${req.get('host')}`) return res.status(403).json({ error: '不允许跨站修改' });
-    const cookie = req.headers.cookie?.split(';').map(s => s.trim()).find(s => s.startsWith('radar_owner='))?.slice(12);
-    const owner = /^[a-f0-9]{64}$/.test(cookie || '') ? cookie : randomBytes(32).toString('hex');
-    if (owner !== cookie) res.setHeader('Set-Cookie', `radar_owner=${owner}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${origin.startsWith('https:') ? '; Secure' : ''}`);
-    req.owner = digest(owner); next();
+    // Logout applies its own Origin/Fetch Metadata plus per-session CSRF checks.
+    if (req.path !== '/api/auth/logout' && ['POST', 'PATCH', 'DELETE'].includes(req.method) && req.headers.origin && req.headers.origin !== new URL(origin).origin && req.headers.origin !== `${req.protocol}://${req.get('host')}`) return res.status(403).json({ error: '不允许跨站修改' });
+    next();
   });
   app.use(express.json({ limit: '16kb' }));
   app.use(express.urlencoded({ extended: false, limit: '4kb' }));
@@ -47,6 +47,16 @@ export async function createApplication({ store = openStore(), mail = createMail
     if (!adminToken || token.length !== adminToken.length || !timingSafeEqual(Buffer.from(token), Buffer.from(adminToken))) return res.status(401).json({ error: '需要管理员凭证' });
     next();
   }
+  installAccountAuth(app, { store, config: authConfig, rateLimit });
+  app.use((req, res, next) => {
+    // Strict guest cookies are withheld on cross-site OIDC redirects. Do not
+    // replace them during authentication or while an account session is active.
+    if (req.accountSession || ['/login', '/register'].includes(req.path)) return next();
+    const cookie = req.headers.cookie?.split(';').map(s => s.trim()).find(s => s.startsWith('radar_owner='))?.slice(12);
+    const owner = /^[a-f0-9]{64}$/.test(cookie || '') ? cookie : randomBytes(32).toString('hex');
+    if (owner !== cookie) res.append('Set-Cookie', `radar_owner=${owner}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${origin.startsWith('https:') ? '; Secure' : ''}`);
+    req.owner = digest(owner); next();
+  });
   const subscriptionSchema = z.object({
     email: z.string().trim().email().max(254).transform(s => s.toLowerCase()),
     code: z.string().refine(code => code === 'all' || getCatalog(store).some(f => f.code === code && f.venue !== 'etf'), '未知基金'),
