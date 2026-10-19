@@ -16,7 +16,8 @@ RUN npm ci --omit=dev && mkdir -p .data && chown node:node .data
 COPY --from=build /app/dist ./dist
 COPY server ./server
 COPY shared ./shared
-RUN chmod -R a+rX /app/server /app/shared /app/dist
+RUN chmod 644 /app/package.json /app/package-lock.json \
+    && chmod -R a+rX /app/server /app/shared /app/dist
 USER node
 EXPOSE 4387
 VOLUME ["/app/.data"]
