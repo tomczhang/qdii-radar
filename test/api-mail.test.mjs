@@ -21,7 +21,15 @@ test('真实订阅接口：会话隔离、校验、邮件验证、通知去重�
     if (!cookie) cookie = res.headers.get('set-cookie')?.split(';')[0]; return res;
   }
   try {
-    assert.equal((await request('/api/dashboard')).status, 200);
+    const dashboardResponse = await request('/api/dashboard', 'GET', undefined, {
+      'X-WX-SERVICE': 'tcbanyservice', 'X-AnyService-Name': 'dashboard',
+    });
+    assert.equal(dashboardResponse.status, 200);
+    assert.equal(dashboardResponse.headers.get('set-cookie'), null, 'public dashboard must not create a browser identity');
+    const board = await dashboardResponse.json();
+    assert.ok(Array.isArray(board.funds) && board.funds.length > 0);
+    assert.ok(Array.isArray(board.changes));
+    assert.equal(board.meta.mode, 'live');
     const input = { email: 'owner@example.test', code: '000834', channels: ['direct'], events: ['increase', 'resume'] };
     assert.equal((await request('/api/subscriptions', 'POST', { ...input, email: 'not-an-email' })).status, 400);
     assert.equal((await request('/api/subscriptions', 'POST', input, { Origin: 'https://attacker.example' })).status, 403);

@@ -30,6 +30,8 @@ npm start
 
 ## 数据来源与口径
 
+微信小程序可通过 AnyService 服务 `dashboard` 调用 `GET /api/dashboard`，免登录获取与网站相同的数据。配置、返回字段与可复制的调用代码见 [小程序看板接口](docs/anyservice-dashboard.md)。
+
 | 数据 | 当前来源 | 处理 |
 |---|---|---|
 | 代销状态、单日上限 | 天天基金 `FundMNBasicInformation` | 暂停优先于残留额度；不销售与暂停分开；缺失或哨兵值不当作无限额 |

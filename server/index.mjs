@@ -47,6 +47,9 @@ export async function createApplication({ store = openStore(), mail = createMail
     if (!adminToken || token.length !== adminToken.length || !timingSafeEqual(Buffer.from(token), Buffer.from(adminToken))) return res.status(401).json({ error: '需要管理员凭证' });
     next();
   }
+  // Shared public data for the website and AnyService (service: dashboard).
+  // Keep this ahead of account/browser identity middleware: no session or cookie needed.
+  app.get('/api/dashboard', (req, res) => res.json(dashboard(store, mail)));
   installAccountAuth(app, { store, config: authConfig, rateLimit });
   app.use((req, res, next) => {
     // Strict guest cookies are withheld on cross-site OIDC redirects. Do not
@@ -66,7 +69,6 @@ export async function createApplication({ store = openStore(), mail = createMail
   app.get('/api/health', (req, res) => res.json({ status: 'ok', mode: 'live', mailConfigured: mail.configured, lastRun: store.getMeta('lastRun')?.status || 'not_started' }));
   // Public website ID only; credentials and usage events never pass through this endpoint.
   app.get('/api/public-config', (req, res) => res.json({ umamiWebsiteId: development ? null : process.env.UMAMI_WEBSITE_ID || null }));
-  app.get('/api/dashboard', (req, res) => res.json(dashboard(store, mail)));
   app.get('/api/subscriptions', (req, res) => res.json({ subscriptions: mail.list(req.owner), mailConfigured: mail.configured }));
   app.post('/api/subscriptions', rateLimit, (req, res) => { const data = subscriptionSchema.parse(req.body); const sub = mail.saveSubscription(req.owner, data); res.status(201).json(sub); mail.deliver().catch(() => {}); });
   app.patch('/api/subscriptions/:id', rateLimit, (req, res) => {
