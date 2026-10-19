@@ -36,7 +36,9 @@ test('真实订阅接口：会话隔离、校验、邮件验证、通知去重�
     assert.equal(miniappResponse.headers.get('set-cookie'), null);
     assert.equal(miniapp.meta.view, 'miniapp');
     assert.equal(miniapp.funds.length, board.funds.length);
-    assert.equal('stability' in miniapp.funds[0], false);
+    assert.equal(miniapp.meta.schemaVersion, 2);
+    assert.ok(Array.isArray(miniapp.scopes));
+    assert.equal('stability' in miniapp.funds[0], true);
     const input = { email: 'owner@example.test', code: '000834', channels: ['direct'], events: ['increase', 'resume'] };
     assert.equal((await request('/api/subscriptions', 'POST', { ...input, email: 'not-an-email' })).status, 400);
     assert.equal((await request('/api/subscriptions', 'POST', input, { Origin: 'https://attacker.example' })).status, 403);

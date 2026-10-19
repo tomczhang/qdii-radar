@@ -1,30 +1,42 @@
-// AnyService caps response bodies at 1000KB. Do not send the website's
-// per-day quota history, scope evidence, notices or chart series to the miniapp.
-export function miniappDashboard(board) {
-  const { meta } = board;
-  return {
-    funds: board.funds.map(fund => ({
-      code: fund.code, name: fund.name, share: fund.share, index: fund.index, venue: fund.venue,
-      agency: quota(fund.agency), direct: quota(fund.direct),
-      returns: fund.returns, returnsAsOf: fund.returnsAsOf || null,
-      quote: fund.quote ? { price: fund.quote.price, premium: fund.quote.premium, change: fund.quote.change, date: fund.quote.date, suspended: fund.quote.suspended } : null,
-      stale: fund.stale, dataIssueCount: fund.dataIssues?.length || 0,
-    })),
-    changes: board.changes.map(change => ({
-      id: change.id, code: change.code, name: change.name, channel: change.channel,
-      type: change.type, before: change.before, after: change.after,
-      effectiveAt: change.effectiveAt, createdAt: change.createdAt,
-    })),
-    meta: {
-      mode: meta.mode, view: 'miniapp', updatedAt: meta.updatedAt || null,
-      otcCount: meta.otcCount, etfCount: meta.etfCount, staleCount: meta.staleCount,
-      timezone: meta.timezone, nextRunAt: meta.nextRunAt, dailySyncTime: meta.dailySyncTime,
-      changesWindow: meta.changesWindow,
-      changesCoverage: { complete: meta.changesCoverage?.complete === true },
-    },
-  };
-}
-
+// A compact, lossless projection for the native client. Repeated historical
+// scope rules are interned, preserving the website calculator's exact semantics.
+const pick = (value, keys) => Object.fromEntries(keys.filter(key => value?.[key] !== undefined).map(key => [key, value[key]]));
+const scopeKeys = ['mode','basis','groupId','cap','codes','ruleId'];
+const quotaKeys = ['status','limit','stale','pendingReview','platforms','availabilityBasis','source','sourceUrl','effectiveAt','observedAt','reason'];
 function quota(value) {
-  return value ? { status: value.status, limit: value.limit ?? null } : { status: 'unknown', limit: null };
+  if (!value) return {status:'unknown',limit:null};
+  return {...pick(value,quotaKeys),...(value.scope ? {scope:pick(value.scope,[...scopeKeys,'sourceUrl','effectiveFrom','reason','evidence','reviewedThrough'])} : {})};
+}
+export function miniappDashboard(board) {
+  const scopes = [], scopeIds = new Map();
+  const intern = value => {
+    if (!value) return null;
+    const rule=pick(value,scopeKeys), key=JSON.stringify(rule);
+    if (!scopeIds.has(key)) {scopeIds.set(key,scopes.length);scopes.push(rule);}
+    return scopeIds.get(key);
+  };
+  const history = value => {
+    if (!value) return null;
+    const result=pick(value,['calendarReady','windowDays','startDate','endDate']);
+    for (const channel of ['agency','direct']) if(value[channel]) result[channel]={
+      ...pick(value[channel],['knownTotal','total','coveredDays','openDays','missingDays','complete']),
+      daily:(value[channel].daily || []).map(row=>({...pick(row,['date','status','limit']),scopeRef:intern(row.scope),channelScope:{mode:row.channelScope?.mode || 'unknown'}}))
+    };
+    return result;
+  };
+  const {meta}=board;
+  const funds=board.funds.map(fund=>({
+    ...pick(fund,['code','name','legalName','fullName','share','manager','index','venue','currency','type','stale','returns','returnsAsOf','dailyChange','navAsOf','trend','trendDates','marketSource','sourceUrl','quotaNote']),
+    agency:quota(fund.agency),direct:quota(fund.direct),dataIssues:(fund.dataIssues || []).filter(issue=>typeof issue==='string'),
+    channelScope:fund.channelScope ? pick(fund.channelScope,['mode','sourceUrl','evidence','reason','from']) : {mode:'unknown'},
+    fees:fund.fees ? pick(fund.fees,['annualRate','operating','directBasis','subscription','redemption','observedAt','sourceUrl','stale']) : null,
+    quote:fund.quote ? pick(fund.quote,['price','premium','change','date','suspended']) : null,
+    stability:history(fund.stability),dataIssueCount:fund.dataIssues?.length || 0
+  }));
+  return {funds,scopes,
+    changes:board.changes.map(change=>pick(change,['id','code','name','channel','channelKey','channelKeys','type','before','after','beforeQuota','afterQuota','beforeByChannel','afterByChannel','effectiveAt','createdAt','sourceUrl','noticeTitle','kind'])),
+    meta:{...pick(meta,['mode','updatedAt','otcCount','etfCount','staleCount','timezone','nextRunAt','dailySyncTime','changesWindow','returnDates']),view:'miniapp',schemaVersion:2,
+      lastRun:pick(meta.lastRun,['status','phase','completed','total','startedAt','finishedAt']),
+      changesCoverage:pick(meta.changesCoverage,['complete','checkedFunds','pendingCount','priorUnknownCount','status'])}
+  };
 }

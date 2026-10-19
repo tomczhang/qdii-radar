@@ -2,7 +2,7 @@
 
 复用网站现有只读接口，通过 AnyService 的 `dashboard` 服务调用。
 
-小程序必须添加 `view=miniapp`，返回 `meta.view: "miniapp"`。完整网站响应可能超过 AnyService 的 1000KB 限制（错误码 `-606002`）；轻量模式保留额度、收益、行情和日期，省略走势图、逐日额度、公告证据及诊断明细。网站不带参数时仍返回原有完整数据。
+小程序必须添加 `view=miniapp`，返回 `meta.view: "miniapp"`。完整网站响应可能超过 AnyService 的 1000KB 限制（错误码 `-606002`）；v2 轻量模式保留额度、收益、走势图、费率和逐日额度，重复历史规则通过 `scopes` 字典去重；省略原始抓取数据和无关公告正文。网站不带参数时仍返回原有完整数据。
 
 ## 配置
 
@@ -51,6 +51,16 @@ async function getDashboard() {
   if (!data || !Array.isArray(data.funds) || !Array.isArray(data.changes) || !data.meta) {
     throw new Error('看板数据格式不正确，请检查源站和请求路径');
   }
+  if (data.meta.schemaVersion !== 2 || !Array.isArray(data.scopes)) {
+    throw new Error('看板服务版本不匹配');
+  }
+  for (const fund of data.funds) for (const channel of ['agency', 'direct']) {
+    const history = fund.stability?.[channel];
+    if (history) history.daily = (history.daily || []).map(({scopeRef, ...row}) => ({
+      ...row, scope: scopeRef == null ? undefined : data.scopes[scopeRef]
+    }));
+  }
+  delete data.scopes;
   return data;
 }
 
@@ -85,7 +95,8 @@ HTTP 200，JSON 直接返回以下字段，没有额外的 `data` 包装；上�
 |---|---|---|
 | `funds` | 数组 | 基金列表，包含场外份额和场内 ETF |
 | `changes` | 数组 | 近 30 天额度动态；不是个人通知列表 |
-| `meta` | 对象 | 更新时间、同步状态、数据覆盖情况 |
+| `meta` | 对象 | `schemaVersion: 2`、更新时间、同步状态、数据覆盖情况 |
+| `scopes` | 数组 | 历史额度规则字典，先还原每日记录的 `scopeRef` 再做统计 |
 
 常用基金字段：`code`、`name`、`share`、`index`、`venue`、`agency`、`direct`、`returns`、`returnsAsOf`、`quote`、`stale`、`dataIssueCount`。`venue === 'etf'` 为场内 ETF，其他为场外基金。`agency` / `direct` 中的 `status` 表示额度状态，`limit` 表示金额。
 
@@ -114,3 +125,13 @@ curl --fail-with-body 'https://qdii.tomcattravel.com/api/dashboard?view=miniapp'
 本接口只提供公开数据，不读取或信任客户端传入的微信身份，也不要求在小程序中放置管理员令牌或源站密钥。后续个人订阅接口需要另外实现可信身份校验。
 
 参考：[AnyService 使用指南](https://docs.cloudbase.net/anyservice/usage)。
+
+## 原生小程序迁移（v2）
+
+本机项目位于 `/Users/tomczhang/WeChatProjects/miniprogram-1`，包括基金总览、购买计算器、额度动态三个标签页，以及基金详情页。UI 对齐网站的蓝灰色系；A/C 份额分组、共享额度去重、20日累计、选基、费用和执行清单复用网站纯业务模块，经 esbuild 打包为小程序 CommonJS。
+
+`agency/direct.scope`、`channelScope`、`stale/pendingReview`、字符串 `dataIssues`、`fees` 均为计算必需信息。未知关系不能按独立额度累加，过期或待核验额度不能用于购买计划。历史关系来自当日记录，不能用今天的规则回填历史。
+
+缓存使用请求开始时间固定到期，按北京时间 07:30 / 16:30 及同步状态刷新；切页共享缓存和请求。手动下拉强制刷新。收藏、持仓输入和购买方案仅保存在设备本地；本次未实现通知订阅或自动交易。
+
+本地数据副本验证：71只基金、31条动态约464KB；54组方案的费用、投入金额、周期及当前/历史额度与完整网站数据一致。响应大小随历史数据增长仍需监测。该结果不代表已证明云链路首屏延迟降低。
