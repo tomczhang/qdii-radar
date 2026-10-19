@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { openStore } from './store.mjs';
 import { createMailService } from './mail.mjs';
 import { getCatalog, dashboard, seedRules, startScheduler, synchronize } from './service.mjs';
+import { miniappDashboard } from './miniapp-dashboard.mjs';
 import { digest } from './domain.mjs';
 import { accountConfig, installAccountAuth } from './auth.mjs';
 
@@ -49,7 +50,10 @@ export async function createApplication({ store = openStore(), mail = createMail
   }
   // Shared public data for the website and AnyService (service: dashboard).
   // Keep this ahead of account/browser identity middleware: no session or cookie needed.
-  app.get('/api/dashboard', (req, res) => res.json(dashboard(store, mail)));
+  app.get('/api/dashboard', (req, res) => {
+    const board = dashboard(store, mail);
+    res.json(req.query.view === 'miniapp' ? miniappDashboard(board) : board);
+  });
   installAccountAuth(app, { store, config: authConfig, rateLimit });
   app.use((req, res, next) => {
     // Strict guest cookies are withheld on cross-site OIDC redirects. Do not
