@@ -15,16 +15,31 @@ try {
  await page.goto(base,{waitUntil:'networkidle'});
  const toggle=page.getByRole('switch',{name:'剔除10元及以下额度'});
  check('Small quota exclusion defaults on',await toggle.getAttribute('aria-checked')==='true');
+ const disclosure=page.locator('.quota-overview-toggle');
+ check('Channel detail starts folded',await disclosure.getAttribute('aria-expanded')==='false'&&!await page.locator('.quota-overview-details').isVisible());
+ await disclosure.focus();await page.keyboard.press('Enter');
+ check('Keyboard opens channel detail',await disclosure.getAttribute('aria-expanded')==='true'&&await page.locator('.quota-overview-details').isVisible());
  for (const enabled of [true,false,true]) {
   if((await toggle.getAttribute('aria-checked')==='true')!==enabled)await toggle.click();
   const view=overviewQuotas(data.funds,enabled),money=n=>n==null?'—':`¥${new Intl.NumberFormat('zh-CN').format(n)}`;
   for(const channel of ['agency','direct','both']) {
-   const card=page.locator(`[data-quota-summary="${channel}"]`),total=totalQuota(view,channel).amount;
-   check(`Current ${channel} ${enabled}`,(await card.locator('.summary-number').innerText()).replace(/\s/g,'').startsWith(money(total)));
-   check(`History ${channel} ${enabled}`,(await card.locator('.summary-history > strong').innerText())===money(totalHistoricalQuota(view,channel).amount));
-   check(`Forecast ${channel} ${enabled}`,(await card.locator('.summary-forecast > strong').innerText())===money(total==null?null:total*20));
+   const card=page.locator(`[data-channel-summary="${channel}"]`),total=totalQuota(view,channel).amount;
+   check(`Current ${channel} ${enabled}`,(await card.locator('[data-current-amount]').innerText()).replace(/\s/g,'').startsWith(money(total)));
+   check(`History ${channel} ${enabled}`,(await card.locator('[data-history-summary] > strong').innerText())===money(totalHistoricalQuota(view,channel).amount));
+   check(`Forecast ${channel} ${enabled}`,(await card.locator('[data-forecast-summary] > strong').innerText())===money(total==null?null:total*20));
+  }
+  for(const index of ['nasdaq','sp500']) {
+   const members=view.filter(f=>f.index===index),card=page.locator(`[data-quota-index="${index}"]`);
+   check(`Index current ${index} ${enabled}`,(await card.locator('[data-index-amount] .counter__sr').textContent())===money(totalQuota(members,'both').amount).replace('¥',''));
+   check(`Index history ${index} ${enabled}`,await card.locator('[data-index-history] > strong').innerText()===money(totalHistoricalQuota(members,'both').amount).replace('¥',''));
+   for(const channel of ['agency','direct']) {
+    check(`Index channel ${index} ${channel} ${enabled}`,(await card.locator(`[data-index-channel="${channel}"] strong`).innerText()).replace(/ \*$/,'')===money(totalQuota(members,channel).amount).replace('¥',''));
+    check(`Index channel history ${index} ${channel} ${enabled}`,await page.locator(`[data-index-details="${index}"] [data-history-channel="${channel}"] strong`).innerText()===money(totalHistoricalQuota(members,channel).amount));
+   }
   }
  }
+ await disclosure.click();
+ await page.waitForFunction(()=>!document.querySelector('.counter[data-animating="true"]'));
  await fs.mkdir('outputs/visual-refresh',{recursive:true});
  for(const width of [1440,768,390,320]) {
   await page.setViewportSize({width,height:1000});
@@ -32,13 +47,14 @@ try {
   check('Warning and switch visible '+width,await page.locator('.investment-risk').isVisible()&&await toggle.isVisible());
   if([1440,390].includes(width))await page.screenshot({path:`outputs/visual-refresh/overview-risk-filter-${width}.png`});
  }
+ if(process.env.SUMMARY_ONLY!=='1') {
  await page.setViewportSize({width:1440,height:1100});
  await page.locator('.sidebar').getByRole('button',{name:/额度动态/}).click();
  check('Changes page warning',await page.locator('.investment-risk').isVisible());
  const sample=data.funds.find(f=>f.venue!=='etf'),q=limit=>({status:'open',limit,scope:{mode:'independent'}});
  const funds=[{...sample,code:'test-a',name:'贡献测试纳指',legalName:'贡献测试纳指',manager:'测试公司A',index:'nasdaq',share:'A',agency:q(50),direct:q(100),channelScope:{mode:'independent'}},{...sample,code:'test-b',name:'贡献测试标普',legalName:'贡献测试标普',manager:'测试公司B',index:'sp500',share:'A',agency:q(200),direct:q(400),channelScope:{mode:'independent'}}].map(f=>({...f,fees:{annualRate:0.5,subscription:[{min:0,max:null,agencyRate:0,standardRate:0}]},dataIssues:[]}));
  await page.unroute('**/api/dashboard');await page.route('**/api/dashboard',r=>r.fulfill({json:{...data,funds}}));
- await page.reload({waitUntil:'networkidle'});
+ await page.evaluate(()=>localStorage.clear());await page.reload({waitUntil:'networkidle'});
  await page.locator('.sidebar').getByRole('button',{name:'购买计算器',exact:true}).click();
  const drawer=page.getByRole('dialog',{name:'设置投入条件'});
  check('Drawer uses slow slide animation',await drawer.evaluate(el=>getComputedStyle(el).animationDuration==='0.46s'&&getComputedStyle(el).animationName==='conditions-enter'));
@@ -67,6 +83,7 @@ try {
  await page.getByRole('button',{name:'修改条件',exact:true}).click();
  check('Reduced motion respected',await drawer.evaluate(el=>getComputedStyle(el).animationName==='none'));
  await page.keyboard.press('Escape');
+ }
  check('No runtime errors',errors.length===0);
  console.log(JSON.stringify({passed:checks.length,checks,errors},null,2));
 } finally {await browser.close();}

@@ -1,0 +1,88 @@
+.quota-overview{margin:0 0 26px}
+.quota-overview-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.quota-overview-heading h2{font-size:16px;letter-spacing:-.3px;margin:0;color:#22314a}
+.quota-overview-total{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;color:#617089;font-size:12px}
+.quota-overview-total strong{font-size:21px;letter-spacing:-.6px;color:#22314a;font-variant-numeric:tabular-nums}
+.quota-index-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.quota-index-card{min-width:0;padding:26px 30px 24px;border-radius:18px;color:#fff}
+.quota-index-nasdaq{background:#2058d2;box-shadow:0 6px 18px #2058d214}
+.quota-index-sp500{background:#087e88;box-shadow:0 6px 18px #087e8814}
+.quota-index-ticker{font-size:11px;letter-spacing:1.8px;font-weight:600;color:#ffffffc7}
+.quota-index-card h3{font-size:24px;letter-spacing:-.7px;margin:6px 0 24px;color:inherit}
+.quota-index-label{font-size:12px;color:#ffffffdb}
+.quota-index-amount{font-family:"DIN Alternate","Helvetica Neue",sans-serif;font-size:76px;line-height:1.2;font-weight:700;letter-spacing:-3px;margin:5px 0 2px}
+.quota-index-amount-long{font-size:48px;line-height:1.9;letter-spacing:-1.5px}
+.quota-index-unit{font-size:11px;color:#ffffffc7}
+.quota-index-channels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:18px 0;margin-top:22px;border-top:1px solid #ffffff30;border-bottom:1px solid #ffffff30}
+.quota-index-channels>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;min-width:0}
+.quota-index-channels>div+div{border-left:1px solid #ffffff30;padding-left:20px}
+.quota-index-channels span{font-size:12px;color:#ffffffdb}
+.quota-index-channels strong{font-size:21px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.quota-index-channels small{font-size:12px}
+.quota-index-history{padding-top:18px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:baseline}
+.quota-index-history>span{font-size:12px;color:#ffffffdb}
+.quota-index-history>strong{font-size:28px;letter-spacing:-.6px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.quota-index-history>small{font-size:11px;color:#ffffffc7;grid-column:1/-1}
+.quota-overview-method{font-size:11px;color:#6c7890;margin:12px 0}
+.quota-overview-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:8px 0;border:0;border-top:1px solid #e1e7ef;background:transparent;color:#52617a;font-size:12px;cursor:pointer}
+.quota-overview-toggle>span:last-child{display:flex;align-items:center;gap:6px}
+.quota-overview-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.quota-overview-toggle:hover{color:#2058d2}
+.quota-overview-toggle:focus-visible{outline:2px solid #2058d2;outline-offset:4px;border-radius:4px}
+.quota-overview-details{padding:12px 0 0}
+.quota-overview-details[hidden]{display:none}
+.quota-history-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.quota-history-index{padding:18px 20px;background:#fff;border:1px solid #e1e7ef;border-radius:12px}
+.quota-history-index h4{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:14px;margin:0 0 10px;color:#2058d2}
+.quota-history-index[data-index-details="sp500"] h4{color:#087e88}
+.quota-history-index h4 span{font-size:11px;font-weight:400;color:#6c7890}
+.quota-history-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px;padding-top:10px}
+.quota-history-row>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.quota-history-row strong{font-size:16px;font-variant-numeric:tabular-nums}
+.quota-history-row small{font-size:11px;color:#6c7890}
+.quota-period-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:22px}
+.quota-period-channel{min-width:0}
+.quota-period-channel h4{font-size:12px;margin:0 0 12px}
+.quota-period-channel>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;color:#617089;margin-top:9px}
+.quota-period-channel strong{color:#22314a;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.quota-period-channel>small{display:block;text-align:right;color:#6c7890;font-size:10px;margin-top:3px}
+.quota-overview-note{font-size:11px;line-height:1.7;color:#6c7890;margin:18px 0 0}
+@media(max-width:1100px){
+ .quota-period-grid{grid-template-columns:1fr;gap:16px}
+ .quota-period-channel+.quota-period-channel{border-top:1px solid #e1e7ef;padding-top:16px}
+}
+@media(max-width:600px){
+ .quota-overview{margin-bottom:16px}
+ .quota-overview-heading{margin-bottom:12px;gap:8px}
+ .quota-overview-heading h2{font-size:14px}
+ .quota-overview-total{gap:4px;font-size:10px}
+ .quota-overview-total strong{font-size:17px}
+ .quota-index-grid{gap:8px}
+ .quota-index-card{padding:16px 14px;border-radius:12px}
+ .quota-index-ticker{font-size:9px;letter-spacing:1px}
+ .quota-index-card h3{font-size:19px;margin:5px 0 20px}
+ .quota-index-label{font-size:10px}
+ .quota-index-amount{font-size:48px;letter-spacing:-2px;margin-top:6px}
+ .quota-index-amount-long{font-size:25px;line-height:2.3;letter-spacing:-1px}
+ .quota-index-unit{font-size:10px}
+ .quota-index-channels{margin-top:18px;padding:13px 0;gap:8px}
+ .quota-index-channels>div{display:flex;flex-direction:column;gap:5px}
+ .quota-index-channels>div+div{padding-left:10px}
+ .quota-index-channels span{font-size:10px}
+ .quota-index-channels strong{font-size:17px}
+ .quota-index-history{display:flex;flex-direction:column;gap:5px;padding-top:14px}
+ .quota-index-history>span,.quota-index-history>small{font-size:10px}
+ .quota-index-history>strong{font-size:25px}
+ .quota-overview-method{font-size:10px}
+ .quota-history-grid{gap:8px}
+ .quota-history-index{padding:14px 12px}
+ .quota-history-index h4{font-size:13px}
+ .quota-history-row>div{flex-direction:column;align-items:flex-end;gap:4px}
+ .quota-history-row strong{font-size:14px}
+}
+@media(max-width:360px){
+ .quota-index-card{padding:14px 11px}
+ .quota-index-amount{font-size:40px}
+ .quota-index-amount-long{font-size:21px}
+ .quota-index-channels strong{font-size:15px}
+}

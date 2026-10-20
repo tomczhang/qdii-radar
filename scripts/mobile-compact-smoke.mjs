@@ -19,14 +19,14 @@ try {
  await page.route('**/api/dashboard',r=>r.fulfill({json:fixture}));
  await page.goto(base);await page.locator('.fund-group').first().waitFor();
  const metrics=await page.evaluate(()=>({height:document.documentElement.scrollHeight,firstFundTop:document.querySelector('.fund-group').getBoundingClientRect().top,groupHeight:document.querySelector('.fund-group').getBoundingClientRect().height}));
- check('First fund appears within the first mobile screen',metrics.firstFundTop<740);
+ check('First fund follows the expanded index overview without excessive spacing',metrics.firstFundTop<1000);
  check('Collapsed groups use compact rows',metrics.groupHeight<150);
- check('Three current quota totals remain visible',await page.locator('.summary-card').count()===3 && await page.locator('[data-quota-summary="direct"] .summary-number').isVisible());
- check('History and assumptions are folded by default',!await page.locator('.summary-periods').first().isVisible());
+ check('Both indices and all four channel subtotals remain visible',await page.locator('.quota-index-card').count()===2 && await page.locator('[data-index-channel]:visible').count()===4);
+ check('History and assumptions are folded by default',!await page.locator('.quota-overview-details').first().isVisible());
  await page.screenshot({path:'outputs/mobile-compact/overview.png'});
- await page.locator('.mobile-summary-toggle').click();
- check('History remains available on demand',await page.locator('.summary-periods').first().isVisible());
- await page.locator('.mobile-summary-toggle').click();
+ await page.locator('.quota-overview-toggle').click();
+ check('History remains available on demand',await page.locator('.quota-overview-details').first().isVisible());
+ await page.locator('.quota-overview-toggle').click();
  await page.locator('.fund-group-toggle').first().click();
  check('Expanded group retains fees and share rules',await page.locator('.mobile-group-facts').first().isVisible());
  await page.locator('.mobile-fund-toggle').first().click();
@@ -35,7 +35,7 @@ try {
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:/^场内 ETF/}).click();
  check('ETF view uses compact mobile rows',await page.locator('.mobile-etf-row').count()===normal.funds.filter(f=>f.venue==='etf').length && !await page.locator('.comparison-scroll').isVisible());
- check('ETF view does not repeat OTC quota summary',await page.locator('.summary-grid').count()===0);
+ check('ETF view does not repeat OTC quota summary',await page.locator('.quota-overview').count()===0);
  await page.locator('.mobile-etf-detail').first().click();
  check('ETF rows open price and premium details',await page.locator('dialog .detail-premium').isVisible());
  await page.keyboard.press('Escape');await page.screenshot({path:'outputs/mobile-compact/etfs.png'});
@@ -55,7 +55,7 @@ try {
   await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   check(`Overview has no horizontal overflow at ${width}`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  }
- check('Desktop history stays visible',await page.locator('.summary-periods').first().isVisible());
+ check('Desktop index history stays visible',await page.locator('[data-index-history]:visible').count()===2);
  await page.screenshot({path:'outputs/mobile-compact/desktop.png'});
  for(const width of [390,320,1440]) {
   await page.setViewportSize({width,height:844});

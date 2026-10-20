@@ -21,7 +21,7 @@ try {
  const huatai=page.locator('[data-group-codes="019524-019525-022664"]');
  assert.match(await huatai.innerText(),/¥5/);assert.match(await huatai.innerText(),/A\/C\/I共享/);
  const summary=page.locator('.channel-filter > summary');
- const totalBefore=await page.locator('[data-quota-summary="both"] .summary-number').innerText();
+ const totalBefore=await page.locator('[data-quota-summary="both"] [data-current-amount]').innerText();
  assert.equal(await page.locator('option[value^="channelScope:"]').count(),0);
  assert.equal(await page.locator('.group-share-heading button').count(),0);
  await summary.click();
@@ -29,7 +29,7 @@ try {
  assert.deepEqual(await page.locator('.fund-group').evaluateAll(ns=>ns.map(n=>n.dataset.groupCodes)),selectFundGroups(groups,{channels:['direct']}).map(g=>g.id));
  await page.getByRole('checkbox',{name:'代销',exact:true}).check();
  assert.deepEqual(await page.locator('.fund-group').evaluateAll(ns=>ns.map(n=>n.dataset.groupCodes)),selectFundGroups(groups,{channels:['direct','agency']}).map(g=>g.id));
- assert.equal(await page.locator('[data-quota-summary="both"] .summary-number').innerText(),totalBefore);
+ assert.equal(await page.locator('[data-quota-summary="both"] [data-current-amount]').innerText(),totalBefore);
  await page.getByRole('checkbox',{name:'直销',exact:true}).uncheck();
  assert.deepEqual(await page.locator('.fund-group').evaluateAll(ns=>ns.map(n=>n.dataset.groupCodes)),selectFundGroups(groups,{channels:['agency']}).map(g=>g.id));
  await page.getByRole('button',{name:'清除筛选',exact:true}).click();

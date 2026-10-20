@@ -30,21 +30,25 @@ try {
  await page.route('**/api/public-config',route=>route.fulfill({json:{umamiWebsiteId:null}}));
  await page.goto(base,{waitUntil:'networkidle'});
  const toggle=page.getByRole('switch',{name:'剔除10元及以下额度'});
- const card=page.locator('[data-quota-summary="both"]');
+ const card=page.locator('[data-quota-index="sp500"]');
+ const total=()=>page.locator('[data-quota-summary="both"] [data-current-amount]').innerText();
+ const history=()=>page.locator('[data-history-summary="both"] > strong').innerText();
+ const forecast=()=>page.locator('[data-forecast-summary="both"] > strong').innerText();
+ await page.locator('.quota-overview-toggle').click();
  const moving=()=>page.locator('.counter[data-animating="true"]').count();
  const settle=()=>page.waitForFunction(()=>!document.querySelector('.counter[data-animating="true"]')); 
  const read=selector=>card.locator(selector).innerText();
- check('Only the three top daily amounts use rolling digits',await page.locator('.summary-grid .rolling-amount').count()===3);
- check('React Bits counters are mounted',await page.locator('.summary-grid .counter').count()===3);
- check('Secondary amounts contain no rolling counters',await page.locator('.summary-breakdown .counter, .summary-history .counter, .summary-forecast .counter').count()===0);
+ check('Only the two index daily amounts use rolling digits',await page.locator('.quota-index-grid .rolling-amount').count()===2);
+ check('React Bits counters are mounted',await page.locator('.quota-index-grid .counter').count()===2);
+ check('Secondary amounts contain no rolling counters',await page.locator('.quota-index-channels .counter, .quota-index-history .counter, .quota-overview-details .counter').count()===0);
  await settle();
- check('Default amounts are exact',(await read('.summary-number')).replace(/\s/g,'')==='¥800/日'&&await read('.summary-history > strong')==='¥16,000'&&await read('.summary-forecast > strong')==='¥16,000');
+ check('Default amounts are exact',(await total())==='¥800'&&await history()==='¥16,000'&&await forecast()==='¥16,000');
  await toggle.click();
- check('Toggle animates all three top daily amounts',await moving()===3);
- check('Secondary totals update immediately',await read('.summary-history > strong')==='¥16,400'&&await read('.summary-forecast > strong')==='¥16,400'&&await read('[data-index-total="sp500"] strong')==='¥120');
+ check('Toggle animates both index daily amounts',await moving()===2);
+ check('Secondary totals update immediately',await history()==='¥16,400'&&await forecast()==='¥16,400'&&await read('[data-index-amount] .counter__sr')==='120');
  check('Digits actually move vertically',await page.locator('.counter__numeral').evaluateAll(els=>els.some(el=>{const y=new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;return y!==0&&Math.abs(y)<el.getBoundingClientRect().height;})));
  await settle();
- check('Including small quotas settles on the new exact totals',(await read('.summary-number')).replace(/\s/g,'')==='¥820/日'&&await read('.summary-history > strong')==='¥16,400'&&await read('.summary-forecast > strong')==='¥16,400');
+ check('Including small quotas settles on the new exact totals',(await total())==='¥820'&&await history()==='¥16,400'&&await forecast()==='¥16,400');
  // Validate rendered glyphs, not only the accessible final-value text.
  check('Visible reels match final text',await page.locator('.counter').evaluateAll(els=>els.every(el=>{
   const actual=[...el.querySelectorAll('.counter__row > span')].map(part=>{
@@ -62,34 +66,34 @@ try {
  await page.getByRole('tab',{name:/纳斯达克100/}).click();
  check('Unrelated filters do not replay totals',await moving()===0);
  await toggle.click();await toggle.click();await toggle.click();await settle();
- check('Rapid reversals settle correctly',(await read('.summary-number')).replace(/\s/g,'')==='¥800/日');
+ check('Rapid reversals settle correctly',(await total())==='¥800');
  check('No animation is left running',await moving()===0);
- check('Decorative reels are hidden from assistive technology',await page.locator('.counter__row[aria-hidden="true"]').count()===3);
+ check('Decorative reels are hidden from assistive technology',await page.locator('.counter__row[aria-hidden="true"]').count()===2);
  await fs.mkdir('outputs/visual-refresh',{recursive:true});
  for(const width of [1440,768,390,320]){
   await page.setViewportSize({width,height:1100});
   check('Summary stays within viewport '+width,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  if(width===1440||width===390)await page.locator('.summary-grid').screenshot({path:`outputs/visual-refresh/quota-roll-${width}.png`});
+  if(width===1440||width===390)await page.locator('.quota-index-grid').screenshot({path:`outputs/visual-refresh/quota-roll-${width}.png`});
  }
  await page.emulateMedia({reducedMotion:'reduce'});
  await toggle.click();await settle();
- check('Reduced motion applies final amounts immediately without rolling',await moving()===0&&(await read('.summary-number')).replace(/\s/g,'')==='¥820/日');
+ check('Reduced motion applies final amounts immediately without rolling',await moving()===0&&(await total())==='¥820');
  // Change the preference while an animation is already running.
  await page.emulateMedia({reducedMotion:'no-preference'});
  await toggle.click();await page.emulateMedia({reducedMotion:'reduce'});
  await settle();
  check('Enabling reduced motion cancels in-flight rolls',await moving()===0);
  await page.emulateMedia({reducedMotion:'no-preference'});
- fixture={...fixture,funds:fixture.funds.map((f,i)=>({...f,agency:quota(i===2?10:0),direct:quota(i===0?989.5:i===2?10:0)}))};
- await page.reload({waitUntil:'networkidle'});await settle();
- check('Fractional amount formats correctly',(await read('.summary-number')).replace(/\s/g,'')==='¥989.5/日');
+ fixture={...fixture,funds:fixture.funds.map((f,i)=>({...f,agency:quota(i===2?10:0),direct:quota(i===1?989.5:i===2?10:0)}))};
+ await page.evaluate(()=>localStorage.clear());await page.reload({waitUntil:'networkidle'});await page.locator('.quota-overview-toggle').click();await settle();
+ check('Fractional amount formats correctly',(await total())==='¥989.5');
  await toggle.click();await settle();
- check('Growing across a thousands boundary adds digits and separator correctly',(await read('.summary-number')).replace(/\s/g,'')==='¥1,009.5/日'&&await card.locator('.summary-number [data-slot="i3"]').count()===1);
+ check('Growing across a thousands boundary adds digits and separator correctly',(await total())==='¥1,009.5'&&await card.locator('[data-index-amount] [data-slot="i3"]').count()===1);
  await toggle.click();await settle();
- check('Shrinking removes the extra digit and separator',(await read('.summary-number')).replace(/\s/g,'')==='¥989.5/日'&&await card.locator('.summary-number [data-slot="i3"]').count()===0&&await card.locator('.summary-number [data-slot="g3"]').count()===0);
+ check('Shrinking removes the extra digit and separator',(await total())==='¥989.5'&&await card.locator('[data-index-amount] [data-slot="i3"]').count()===0&&await card.locator('[data-index-amount] [data-slot="g3"]').count()===0);
  fixture={...fixture,funds:fixture.funds.map(f=>({...f,stability:null}))};
- await page.reload({waitUntil:'networkidle'});
- check('Unknown historical amounts stay unknown without fake zero',await read('.summary-history > strong')==='—'&&await card.locator('.summary-history .counter__digit').count()===0);
+ await page.evaluate(()=>localStorage.clear());await page.reload({waitUntil:'networkidle'});await page.locator('.quota-overview-toggle').click();
+ check('Unknown historical amounts stay unknown without fake zero',await history()==='—'&&await page.locator('[data-history-summary] .counter__digit').count()===0);
  check('No runtime errors',errors.length===0);
  console.log(JSON.stringify({passed:checks.length,checks},null,2));
 } finally {

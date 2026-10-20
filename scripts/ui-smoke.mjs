@@ -18,16 +18,17 @@ try {
   await page.locator('.fund-group').first().waitFor();
   const expandGroups = async () => { for(const button of await page.locator('.fund-group-toggle').all()) if(await button.getAttribute('aria-expanded')==='false') await button.click(); };
   await expandGroups();
+  await page.locator('.quota-overview-toggle').click();
   const data = await (await page.request.get(base + '/api/dashboard')).json();
   check('API supplies a 30-day window', data.meta.changesWindow?.days === 30);
   const otcFunds = data.funds.filter(f => f.venue !== 'etf');
   check('All live OTC shares render', await page.locator('tbody tr').count() === otcFunds.length && data.meta.mode === 'live');
   for (const field of ['agency', 'direct']) {
     const total = totalQuota(otcFunds,field).amount;
-    check(field + ' total uses all current known quotas', (await page.locator(`[data-quota-summary="${field}"] .summary-number`).innerText()).includes(new Intl.NumberFormat('zh-CN').format(total)));
+    check(field + ' total uses all current known quotas', (await page.locator(`[data-channel-summary="${field}"] [data-current-amount]`).innerText()).includes(new Intl.NumberFormat('zh-CN').format(total)));
     for (const index of ['nasdaq','sp500']) {
       const amount=totalQuota(otcFunds.filter(f=>f.index===index),field).amount;
-      check(field+' '+index+' subtotal is correct', (await page.locator(`[data-quota-summary="${field}"] [data-index-total="${index}"]`).innerText()).includes(new Intl.NumberFormat('zh-CN').format(amount)));
+      check(field+' '+index+' subtotal is correct', (await page.locator(`[data-quota-index="${index}"] [data-index-channel="${field}"]`).innerText()).includes(new Intl.NumberFormat('zh-CN').format(amount)));
     }
     for (const direction of ['asc', 'desc']) {
       const sort = field + ':' + direction;
@@ -144,7 +145,7 @@ try {
   const sample = {id:'browser-fixture',code:'000834',name:'测试基金 A',channel:'直销',type:'increase',before:'¥10',after:'¥100',beforeQuota:{status:'open',limit:10},afterQuota:{status:'open',limit:100},createdAt:new Date().toISOString()};
   await page.route('**/api/dashboard', route=>route.fulfill({json:{...data,changes:[sample]}}));
   await page.reload({waitUntil:'networkidle'});
-  check('Compact notice shows the live change count', (await page.locator('.changes-notice-text').innerText()).includes('1 条额度动态') && await page.locator('.summary-grid > .summary-card').count()===3);
+  check('Compact notice shows the live change count', (await page.locator('.changes-notice-text').innerText()).includes('1 条额度动态') && await page.locator('.quota-index-card').count()===2);
   await page.locator('.quota-changes-notice').click();
   check('Change details show per-day increase', (await page.locator('.change-delta').innerText()).includes('+¥90 / 日'));
   check('Seven-day changes detail has no horizontal overflow', await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

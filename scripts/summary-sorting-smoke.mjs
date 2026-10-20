@@ -14,10 +14,12 @@ try {
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.url());});
  const data=await(await page.request.get(base+'/api/dashboard')).json(),funds=data.funds.filter(f=>f.venue!=='etf');
  await page.goto(base,{waitUntil:'networkidle'});
+ await page.getByRole('switch',{name:'剔除10元及以下额度'}).click();
+ await page.locator('.quota-overview-toggle').click();
  for(const button of await page.locator('.fund-group-toggle').all())await button.click();
  const total=totalQuota(funds,'both'),history=totalHistoricalQuota(funds,'both');
  check('Current combined capacity is distinct from adding channel subtotals',total.amount<totalQuota(funds,'direct').amount+totalQuota(funds,'agency').amount);
- check('Combined summary uses both-channel capacity',(await page.locator('[data-quota-summary="both"] .summary-number').innerText()).includes(money(total.amount)));
+ check('Combined summary uses both-channel capacity',(await page.locator('[data-quota-summary="both"] [data-current-amount]').innerText()).includes(money(total.amount)));
  check('Combined history shows dated scope total',(await page.locator('[data-history-summary="both"] strong').innerText())===`¥${money(history.amount)}`);
  check('Combined forecast uses new capacity times 20',(await page.locator('[data-forecast-summary="both"]').innerText()).includes(money(total.amount*20)));
  check('Summary explanation text is removed',await page.locator('.summary-definition, .quota-total-foot, .summary-period > small, #small-quota-note').count()===0);

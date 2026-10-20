@@ -1,4 +1,4 @@
-import RollingAmount from './components/RollingAmount.jsx';
+import QuotaOverview from './components/QuotaOverview.jsx';
 import DataIssues from './components/DataIssues.jsx';
 import MobileDisclosure from './components/MobileDisclosure.jsx';
 import { usage } from './usage.mjs';
@@ -8,7 +8,7 @@ import {groupFunds, selectFundGroups} from './fund-groups.mjs';
 import FundFees, {ChannelScope} from './components/FundFees.jsx';
 import { STABILITY_WINDOW_DAYS } from '../shared/config.mjs';
 import { createQuotaComparator, createFeeChannelComparator } from './fund-sort.mjs';
-import { totalQuota, totalHistoricalQuota, quotaDelta } from './summary.mjs';
+import { totalQuota, quotaDelta } from './summary.mjs';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Calculator, ArrowDown, ArrowDownUp, ArrowRight, ArrowUpRight, Bell, BellRing, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, HelpCircle, Info, LayoutGrid, Mail, Plus, Radar, Search, ShieldCheck, SlidersHorizontal, Sparkles, Star, TrendingUp, X } from 'lucide-react';
@@ -229,7 +229,6 @@ function App() {
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState(null);
   const [storageError, setStorageError] = useState(false);
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const toastTimer = useRef();
   useEffect(() => { usage.init(); usage.pageView(page); }, [page]);
   useEffect(() => {
@@ -283,9 +282,6 @@ function App() {
     return [index, { total: members.length, open: venue === 'otc' ? totalQuota(members, 'both').open : null }];
   }));
   const showOpenCounts = venue === 'otc' && onlyOpen;
-  const totals = Object.fromEntries(['both','agency','direct'].map(channel=>[channel,totalQuota(otcFunds,channel)]));
-  const historyTotals = Object.fromEntries(['both','agency','direct'].map(channel=>[channel,totalHistoricalQuota(otcFunds,channel)]));
-  const indexTotals = Object.fromEntries(['both','agency','direct'].map(channel => [channel, Object.fromEntries(['nasdaq','sp500'].map(index => [index,totalQuota(otcFunds.filter(f=>f.index===index),channel)]))]));
   function sortHeader(key) { const first=['annualFee','agencyFee'].includes(key)?'asc':'desc';setSort(`${key}:${sort.startsWith(key+':')?(sort.endsWith('desc')?'asc':'desc'):first}`); }
   const nav = [{ id: 'overview', label: '基金总览', Icon: LayoutGrid }, { id: 'calculator', label: '购买计算器', Icon: Calculator }, { id: 'changes', label: '额度动态', Icon: TrendingUp, count: quotaChanges.length }, ...(NOTIFICATIONS_ENABLED ? [{ id: 'alerts', label: '邮箱提醒', Icon: Bell, count: alerts.length }] : [])];
   const isBoard = page === 'overview';
@@ -303,10 +299,7 @@ function App() {
         {(loading || loadError) && <div className="live-status" role="status"><Info size={15} />{loading ? '正在加载真实数据…' : loadError}</div>}
         {!loading && <DataIssues funds={funds} syncing={dataMeta.lastRun?.status === 'running'} onDetail={fund => setModal({type: 'fund', fund})}/>}
         <div className="page-heading"><div><div className="eyebrow"><span />NASDAQ 100 & S&P 500</div><h1>{page === 'overview' ? '今日申购额度' : page === 'calculator' ? '购买计算器' : page === 'changes' ? '额度动态' : '我的邮箱提醒'}</h1>{page !== 'overview' && <p>{page === 'calculator' ? '输入金额与目标比例，算清每次投多少、预计多久投完。' : page === 'changes' ? '查看近30天恢复申购、额度调整等变化，按生效时间倒序排列。' : '选择你关心的变化，其余时间安心等待。'}</p>}</div><div className="heading-actions">{page === 'overview' && venue === 'otc' && <button type="button" role="switch" aria-checked={excludeSmall} aria-label="剔除10元及以下额度" className="overview-quota-switch calculator-toggle-row" onClick={() => setExcludeSmall(value => !value)}><span>剔除 ≤10 元额度</span><span className="calculator-toggle-track" aria-hidden="true"><span/></span></button>}{page === 'overview' && <button className="quota-changes-notice" onClick={() => changePage('changes')} title={dataMeta.changesCoverage?.complete ? '查看近30天额度变化明细' : '查看近30天已核验的额度变化；部分历史仍在核验中'}><span className="changes-notice-period">近30天</span><span className="changes-notice-text">{quotaChanges.length || dataMeta.changesCoverage?.complete ? <><strong>{quotaChanges.length}</strong> 条额度动态</> : '历史待核验'}</span><ArrowRight size={15} aria-hidden="true" /></button>}{NOTIFICATIONS_ENABLED && <button className="button primary heading-cta" onClick={() => openAlert()}><Bell size={17} />设置额度提醒</button>}</div></div>
-        {page === 'overview' && venue === 'otc' && <><section id="quota-summary" className={cn('summary-grid', summaryExpanded && 'summary-expanded')} aria-label="额度概览">{[['both','合并可买总额度'],['agency','代销额度小计'],['direct','直销额度小计']].map(([key,label]) => <div key={key} className={cn('summary-card', key === 'both' && 'combined-summary', key === 'direct' && 'direct-summary')} data-quota-summary={key}><div className="summary-label">{label}</div><div className="summary-number"><span className="summary-currency">¥</span><RollingAmount value={totals[key].amount} replayKey={excludeSmall} /><small>/ 日</small></div><div className="summary-breakdown">{[['nasdaq','纳指'],['sp500','标普']].map(([index,name])=><span key={index} data-index-total={index}>{name} <strong>{indexTotals[key][index].amount == null ? '—' : `¥${number(indexTotals[key][index].amount)}`}</strong>{indexTotals[key][index].unknown > 0 && <em>（已知）</em>}</span>)}</div><div className="summary-periods">
-              <div className="summary-history summary-period" data-history-summary={key}><span className="period-badge">历史累计</span><span>过去{STABILITY_WINDOW_DAYS}个交易日</span><strong>{historyTotals[key].amount == null ? '—' : `¥${number(historyTotals[key].amount)}`}</strong></div>
-              <div className="summary-forecast summary-period" data-forecast-summary={key}><span className="period-badge">静态预估</span><span>未来{STABILITY_WINDOW_DAYS}个交易日</span><strong>{totals[key].amount == null ? '—' : `¥${number(totals[key].amount * STABILITY_WINDOW_DAYS)}`}</strong></div>
-            </div><p className="forecast-note">20个交易日约一个月；预估未计后续额度调整及境外休市</p></div>)}</section><button type="button" className="mobile-summary-toggle" aria-expanded={summaryExpanded} aria-controls="quota-summary" onClick={() => setSummaryExpanded(value => !value)}>{summaryExpanded ? '收起详情' : '查看详情'}<ChevronDown size={14}/></button></>}
+        {page === 'overview' && venue === 'otc' && <QuotaOverview funds={otcFunds} excludeSmall={excludeSmall} />}
         {page === 'calculator' && <PurchaseCalculator funds={funds} favorites={favorites} updatedAt={dataMeta.updatedAt} onDetail={fund => fund && setModal({ type: 'fund', fund })} />}
         {isBoard && <div className="venue-tabs" role="group" aria-label="交易方式">{[['otc', '场外申购', otcFunds.length], ['etf', '场内 ETF', funds.length - otcFunds.length]].map(([id, title, count]) => <button key={id} className={cn(venue === id && 'selected')} aria-pressed={venue === id} onClick={() => { usage.tabClick('venue', id, page); setVenue(id); setOnlyOpen(id === 'otc'); setSort(id === 'etf' ? 'premium:asc' : 'combined:desc'); }}>{title}<span>{count}</span></button>)}</div>}
         {isBoard && <section className="fund-board" aria-label="基金比较">
