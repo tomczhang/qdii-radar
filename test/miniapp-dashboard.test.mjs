@@ -33,7 +33,6 @@ test('miniapp keeps quota semantics and dates without exceeding the gateway limi
 });
 
 import {totalQuota,totalHistoricalQuota} from '../src/summary.mjs';
-import {purchaseCandidates,selectedCandidates,calculatePurchasePlan} from '../src/purchase-plan.mjs';
 
 test('v2 round trip preserves shared pools, dated channel rules, fee tiers and exclusions',()=>{
  const fees={annualRate:.6,operating:{management:.5,custody:.1,service:0},subscription:[{min:0,max:null,agencyRate:.12,standardRate:1.2}],stale:false};
@@ -50,13 +49,9 @@ test('v2 round trip preserves shared pools, dated channel rules, fee tiers and e
  for(const c of ['agency','direct','both']){
   assert.deepEqual(totalQuota(decoded.funds,c),totalQuota(funds,c));
   assert.deepEqual(totalHistoricalQuota(decoded.funds,c),totalHistoricalQuota(funds,c));
-  assert.deepEqual(purchaseCandidates(decoded.funds,c),purchaseCandidates(funds,c));
-  for(const mode of ['monthly','fast'])for(const strategy of ['fees','maintenance','returns']){
-   const input={amount:10000,ratio:100,ratioMode:'nasdaq',mode,channel:c,strategy,purchaseDays:20,holdingYears:1,feeBasis:'annual'};
-   const plan=rows=>calculatePurchasePlan(input,selectedCandidates(purchaseCandidates(rows,c),{},input));
-   assert.deepEqual(plan(decoded.funds),plan(funds));
-  }
+
  }
- assert.ok(!purchaseCandidates(decoded.funds,'direct').flatMap(g=>g.options).some(o=>['000003','000004'].includes(o.code)));
+ assert.equal(decoded.funds[2].direct.stale,true);
+ assert.equal(decoded.funds[3].direct.pendingReview,true);
  assert.deepEqual(decoded.funds[0].fees,fees);
 });

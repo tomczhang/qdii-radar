@@ -1,6 +1,6 @@
-const pages = { overview: '基金总览', calculator: '购买计算器', changes: '额度动态', alerts: '邮箱提醒' };
+const pages = { overview: '基金总览', changes: '额度动态', alerts: '邮箱提醒' };
 const tabs = { navigation: Object.keys(pages), venue: ['otc', 'etf'], index: ['all', 'nasdaq', 'sp500'] };
-const paths = { overview: '/', calculator: '/calculator', changes: '/changes', alerts: '/alerts' };
+const paths = { overview: '/', changes: '/changes', alerts: '/alerts' };
 
 // Only public configuration comes from our server. All events go directly to Umami Cloud.
 export function createUsageTracker(environment = globalThis) {
@@ -53,7 +53,6 @@ export function createUsageTracker(environment = globalThis) {
       if (!tabs[group]?.includes(tab) || !Object.hasOwn(pages, page)) return;
       send({ page, name: `tab_${group}_${tab}`, data: { group, tab } });
     },
-    calculateClick() { send({ page: 'calculator', name: 'calculator_calculate_click' }); },
   };
 }
 export const usage = createUsageTracker();

@@ -1,5 +1,5 @@
 // A compact, lossless projection for the native client. Repeated historical
-// scope rules are interned, preserving the website calculator's exact semantics.
+// scope rules are interned, preserving the quota overview’s current and historical semantics.
 const pick = (value, keys) => Object.fromEntries(keys.filter(key => value?.[key] !== undefined).map(key => [key, value[key]]));
 const scopeKeys = ['mode','basis','groupId','cap','codes','ruleId'];
 const quotaKeys = ['status','limit','stale','pendingReview','platforms','availabilityBasis','source','sourceUrl','effectiveAt','observedAt','reason'];

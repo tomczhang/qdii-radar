@@ -41,7 +41,6 @@ try {
   for(const channel of ['agency','direct']) {
     const historical=totalHistoricalQuota(otcFunds,channel),current=totalQuota(otcFunds,channel);
     check(channel+' history uses dated scope totals',(await page.locator(`[data-history-summary="${channel}"] strong`).innerText())===`¥${new Intl.NumberFormat('zh-CN').format(historical.amount)}`);
-    check(channel+' forecast uses deduplicated current quota',(await page.locator(`[data-forecast-summary="${channel}"] strong`).innerText())===`¥${new Intl.NumberFormat('zh-CN').format(current.amount*20)}`);
   }
   check('Wanjia A/C sharing is visible',await page.locator('tr[data-fund-code="019441"] [data-scope-mode="shared"]').count()===2);
   check('Southern share independence is visible',await page.locator('tr[data-fund-code="016452"] [data-scope-mode="independent"]').count()===2);

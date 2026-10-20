@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {applySalesChannels,correctSalesHistory,salesChannelEvidence} from '../server/sales-channels.mjs';
 import {attachShareScopes} from '../server/share-scopes.mjs';
-import {purchaseCandidates,selectedCandidates,calculatePurchasePlan,planSignature} from '../src/purchase-plan.mjs';
 import {totalQuota} from '../src/summary.mjs';
 import {fundDataIssues} from '../server/resilience.mjs';
 import {currentFund} from '../server/service.mjs';
@@ -17,15 +16,6 @@ test('D类销售公告明确不上线直销；金额公告不能创造直销可�
  assert.equal(f.agency.limit,100);assert.deepEqual(f.agency.platforms,['腾讯理财通','京东金融']);
  assert.equal(f.agency.availabilityBasis,'user_report');assert.equal(f.agency.tiantian.status,'unavailable');
  assert.equal(totalQuota([f],'direct').amount,0);assert.equal(totalQuota([f],'agency').amount,100);assert.equal(totalQuota([f],'both').amount,100);
-});
-test('两个代销平台仅选一个；可手选平台，计划不得发往天天或直销',()=>{
- const f=current(),groups=purchaseCandidates([f],'both');assert.equal(groups.length,1);assert.equal(groups[0].options.length,2);
- assert.equal(purchaseCandidates([f],'direct').length,0);
- const jd=groups[0].options.find(o=>o.platform==='京东金融'),selected=selectedCandidates(groups,{[groups[0].id]:jd.optionId});
- const result=calculatePurchasePlan({amount:200,ratio:100,mode:'fast',channel:'both'},selected);
- assert.equal(result.periods,2);assert.equal(result.allocations[0].rows.length,1);assert.equal(result.allocations[0].rows[0].platform,'京东金融');
- assert.equal(result.costs.subscriptionFee,0);assert.deepEqual(result.maintenance.agencyPlatforms,['京东金融']);
- const other=selected.map(r=>({...r,platform:'腾讯理财通'}));assert.notEqual(planSignature(other),planSignature(selected));
 });
 test('长期额度不随时间过期，保留真实确认时间且不倒填历史',()=>{
  const stale=applySalesChannels({...fund,agency:{...fund.agency,observedAt:'2026-10-20T00:00:00Z'}},new Date('2026-10-20T00:00:00Z'));
@@ -83,10 +73,6 @@ test('标普D只在已确认代销平台计100元，不再混入直销及其历�
  assert.equal(f.direct.status,'unavailable');assert.equal(f.agency.status,'open');assert.equal(f.agency.limit,100);
  assert.deepEqual(f.agency.platforms,['腾讯理财通','京东金融']);
  for(const [channel,amount] of [['direct',0],['agency',100],['both',100]])assert.equal(totalQuota([f],channel).amount,amount);
- assert.equal(purchaseCandidates([f],'direct').length,0);
- const groups=purchaseCandidates([f],'both');assert.equal(groups.length,1);assert.equal(groups[0].options.length,2);
- const plan=calculatePurchasePlan({amount:200,ratio:0,mode:'fast',channel:'both'},selectedCandidates(groups,{}));
- assert.equal(plan.periods,2);assert.ok(plan.allocations.every(a=>a.rows.every(r=>r.channel==='agency')));
  const row={date:'2026-10-16',status:'open',limit:100};
  assert.equal(correctSalesHistory('022523','direct',row).limit,0);
  assert.equal(correctSalesHistory('022523','agency',row).limit,null);

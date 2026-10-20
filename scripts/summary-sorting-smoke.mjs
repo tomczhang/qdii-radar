@@ -21,7 +21,6 @@ try {
  check('Current combined capacity is distinct from adding channel subtotals',total.amount<totalQuota(funds,'direct').amount+totalQuota(funds,'agency').amount);
  check('Combined summary uses both-channel capacity',(await page.locator('[data-quota-summary="both"] [data-current-amount]').innerText()).includes(money(total.amount)));
  check('Combined history shows dated scope total',(await page.locator('[data-history-summary="both"] strong').innerText())===`¥${money(history.amount)}`);
- check('Combined forecast uses new capacity times 20',(await page.locator('[data-forecast-summary="both"]').innerText()).includes(money(total.amount*20)));
  check('Summary explanation text is removed',await page.locator('.summary-definition, .quota-total-foot, .summary-period > small, #small-quota-note').count()===0);
  for(const key of ['annualFee','agencyFee'])for(const direction of ['asc','desc']) {
    await page.getByLabel('排序方式').selectOption(`${key}:${direction}`);

@@ -33,7 +33,6 @@ try {
  const card=page.locator('[data-quota-index="sp500"]');
  const total=()=>page.locator('[data-quota-summary="both"] [data-current-amount]').innerText();
  const history=()=>page.locator('[data-history-summary="both"] > strong').innerText();
- const forecast=()=>page.locator('[data-forecast-summary="both"] > strong').innerText();
  await page.locator('.quota-overview-toggle').click();
  const moving=()=>page.locator('.counter[data-animating="true"]').count();
  const settle=()=>page.waitForFunction(()=>!document.querySelector('.counter[data-animating="true"]')); 
@@ -42,13 +41,13 @@ try {
  check('React Bits counters are mounted',await page.locator('.quota-index-grid .counter').count()===2);
  check('Secondary amounts contain no rolling counters',await page.locator('.quota-index-channels .counter, .quota-index-history .counter, .quota-overview-details .counter').count()===0);
  await settle();
- check('Default amounts are exact',(await total())==='¥800'&&await history()==='¥16,000'&&await forecast()==='¥16,000');
+ check('Default amounts are exact',(await total())==='¥800'&&await history()==='¥16,000');
  await toggle.click();
  check('Toggle animates both index daily amounts',await moving()===2);
- check('Secondary totals update immediately',await history()==='¥16,400'&&await forecast()==='¥16,400'&&await read('[data-index-amount] .counter__sr')==='120');
+ check('Secondary totals update immediately',await history()==='¥16,400'&&await read('[data-index-amount] .counter__sr')==='120');
  check('Digits actually move vertically',await page.locator('.counter__numeral').evaluateAll(els=>els.some(el=>{const y=new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;return y!==0&&Math.abs(y)<el.getBoundingClientRect().height;})));
  await settle();
- check('Including small quotas settles on the new exact totals',(await total())==='¥820'&&await history()==='¥16,400'&&await forecast()==='¥16,400');
+ check('Including small quotas settles on the new exact totals',(await total())==='¥820'&&await history()==='¥16,400');
  // Validate rendered glyphs, not only the accessible final-value text.
  check('Visible reels match final text',await page.locator('.counter').evaluateAll(els=>els.every(el=>{
   const actual=[...el.querySelectorAll('.counter__row > span')].map(part=>{

@@ -128,10 +128,8 @@ curl --fail-with-body 'https://qdii.tomcattravel.com/api/dashboard?view=miniapp'
 
 ## 原生小程序迁移（v2）
 
-本机项目位于 `/Users/tomczhang/WeChatProjects/miniprogram-1`，包括基金总览、购买计算器、额度动态三个标签页，以及基金详情页。UI 对齐网站的蓝灰色系；A/C 份额分组、共享额度去重、20日累计、选基、费用和执行清单复用网站纯业务模块，经 esbuild 打包为小程序 CommonJS。
+本机项目位于 `/Users/tomczhang/WeChatProjects/miniprogram-1`，包括基金总览、额度动态两个标签页，以及基金详情页。共享额度去重、20日累计、分组筛选与排序复用网站纯模块；购买计算器及方案生成已移除。
 
-`agency/direct.scope`、`channelScope`、`stale/pendingReview`、字符串 `dataIssues`、`fees` 均为计算必需信息。未知关系不能按独立额度累加，过期或待核验额度不能用于购买计划。历史关系来自当日记录，不能用今天的规则回填历史。
+`agency/direct.scope`、`channelScope`、`stale/pendingReview`、`dataIssues` 与 `fees` 用于展示额度、费率和数据状态。历史共享关系来自当日记录，不使用今天的规则回填。
 
-缓存使用请求开始时间固定到期，按北京时间 07:30 / 16:30 及同步状态刷新；切页共享缓存和请求。手动下拉强制刷新。收藏、持仓输入和购买方案仅保存在设备本地；本次未实现通知订阅或自动交易。
-
-本地数据副本验证：71只基金、31条动态约464KB；54组方案的费用、投入金额、周期及当前/历史额度与完整网站数据一致。响应大小随历史数据增长仍需监测。该结果不代表已证明云链路首屏延迟降低。
+缓存按北京时间采集时间和同步状态刷新，切页共享缓存，下拉可手动刷新。收藏仅存在本机；旧购买方案缓存会在启动时删除。当前不提供通知订阅或自动交易。

@@ -57,7 +57,7 @@ export default function QuotaOverview({ funds, excludeSmall }) {
     </div>
     <p className="quota-overview-method">按份额与渠道共享规则去重{excludeSmall ? ' · 已剔除 ≤10元' : ''}</p>
     <button type="button" className="quota-overview-toggle" aria-expanded={expanded} aria-controls={detailId} onClick={() => setExpanded(value => !value)}>
-      <span>渠道{STABILITY_WINDOW_DAYS}日累计与预估</span><span>{expanded ? '收起' : '展开'}<ChevronDown size={16} /></span>
+      <span>渠道{STABILITY_WINDOW_DAYS}日累计</span><span>{expanded ? '收起' : '展开'}<ChevronDown size={16} /></span>
     </button>
     <div id={detailId} className="quota-overview-details" hidden={!expanded}>
       <div className="quota-history-grid">
@@ -74,10 +74,9 @@ export default function QuotaOverview({ funds, excludeSmall }) {
           <div><span>每日可买{partial(totals[channel].current) ? '（已知）' : ''}</span><strong data-current-amount>{money(totals[channel].current.amount)}</strong></div>
           <div data-history-summary={channel}><span>{STABILITY_WINDOW_DAYS}日已知累计</span><strong>{money(totals[channel].history.amount)}</strong></div>
           <small>{coverage(totals[channel].history)}</small>
-          <div data-forecast-summary={channel}><span>未来{STABILITY_WINDOW_DAYS}日静态预估{partial(totals[channel].current) ? '（已知）' : ''}</span><strong>{money(totals[channel].current.amount == null ? null : totals[channel].current.amount * STABILITY_WINDOW_DAYS)}</strong></div>
         </div>)}
       </div>
-      <p className="quota-overview-note">历史统计不含今天，缺失记录不计为零；代销与直销不能直接相加。{STABILITY_WINDOW_DAYS}个交易日约一个月，静态预估未计后续额度调整及境外休市。</p>
+      <p className="quota-overview-note">历史统计不含今天，缺失记录不计为零；代销与直销不能直接相加。</p>
     </div>
   </section>;
 }

@@ -57,7 +57,7 @@ export function AccountButton({ page }) {
       <strong>{account.user.name}</strong><p>{account.user.email}</p><span className="account-provider">额度雷达账号</span>
       <a href="/reset-password"><UserRound size={15} />重设密码</a>
       <LogoutForm account={account} />
-      <small>收藏与计算方案保存在此浏览器。</small>
+      <small>收藏保存在此浏览器。</small>
     </section>}
   </div>;
 }
@@ -169,7 +169,7 @@ export function AccountPage() {
           <a className="account-guest" href={returnTo}>免登录继续使用<ArrowRight size={17} /></a>
         </>}
       </section>
-      <p className="account-footnote"><ShieldCheck size={16} />收藏与计算方案保存在此浏览器</p>
+      <p className="account-footnote"><ShieldCheck size={16} />收藏保存在此浏览器</p>
     </main>
     <footer className="account-footer">纳斯达克100 · 标普500<span>投资有风险，入市需谨慎</span></footer>
   </div>;

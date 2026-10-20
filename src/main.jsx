@@ -11,9 +11,8 @@ import { createQuotaComparator, createFeeChannelComparator } from './fund-sort.m
 import { totalQuota, quotaDelta } from './summary.mjs';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Calculator, ArrowDown, ArrowDownUp, ArrowRight, ArrowUpRight, Bell, BellRing, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, HelpCircle, Info, LayoutGrid, Mail, Plus, Search, ShieldCheck, SlidersHorizontal, Sparkles, Star, TrendingUp, X } from 'lucide-react';
+import { ArrowDown, ArrowDownUp, ArrowRight, ArrowUpRight, Bell, BellRing, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, HelpCircle, Info, LayoutGrid, Mail, Plus, Search, ShieldCheck, SlidersHorizontal, Sparkles, Star, TrendingUp, X } from 'lucide-react';
 import './styles.css';
-import PurchaseCalculator from './components/PurchaseCalculator.jsx';
 import InvestmentRisk from './components/InvestmentRisk.jsx';
 import UpdateStatus from './components/UpdateStatus.jsx';
 import PublisherFollow from './components/PublisherFollow.jsx';
@@ -215,7 +214,7 @@ function App() {
   const [dataMeta, setDataMeta] = useState({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [page, setPage] = useState(() => { const requested = new URLSearchParams(window.location.search).get('page'); return ['calculator', 'changes'].includes(requested) ? requested : 'overview'; });
+  const [page, setPage] = useState(() => { const requested = new URLSearchParams(window.location.search).get('page'); return ['changes'].includes(requested) ? requested : 'overview'; });
   const [tab, setTab] = useState('all');
   const [venue, setVenue] = useState('otc');
   const [query, setQuery] = useState('');
@@ -230,6 +229,15 @@ function App() {
   const [toast, setToast] = useState(null);
   const [storageError, setStorageError] = useState(false);
   const toastTimer = useRef();
+  useEffect(() => {
+    // Remove retired local purchase inputs/results; never restore or migrate a plan.
+    try { localStorage.removeItem('qdii-radar:purchase-calculator:v1'); } catch {}
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('page') === 'calculator' || url.pathname === '/calculator') {
+      url.searchParams.delete('page'); url.pathname = '/';
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+  }, []);
   useEffect(() => { usage.init(); usage.pageView(page); }, [page]);
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify({ favorites })); setStorageError(false); } catch { setStorageError(true); }
@@ -292,7 +300,7 @@ function App() {
   }));
   const showOpenCounts = venue === 'otc' && onlyOpen;
   function sortHeader(key) { const first=['annualFee','agencyFee'].includes(key)?'asc':'desc';setSort(`${key}:${sort.startsWith(key+':')?(sort.endsWith('desc')?'asc':'desc'):first}`); }
-  const nav = [{ id: 'overview', label: '基金总览', Icon: LayoutGrid }, { id: 'calculator', label: '购买计算器', Icon: Calculator }, { id: 'changes', label: '额度动态', Icon: TrendingUp, count: quotaChanges.length }, ...(NOTIFICATIONS_ENABLED ? [{ id: 'alerts', label: '邮箱提醒', Icon: Bell, count: alerts.length }] : [])];
+  const nav = [{ id: 'overview', label: '基金总览', Icon: LayoutGrid }, { id: 'changes', label: '额度动态', Icon: TrendingUp, count: quotaChanges.length }, ...(NOTIFICATIONS_ENABLED ? [{ id: 'alerts', label: '邮箱提醒', Icon: Bell, count: alerts.length }] : [])];
   const isBoard = page === 'overview';
   return <div className="app-shell">
     <aside className="sidebar"><button className="brand" onClick={() => changePage('overview')} aria-label="QDII 额度雷达首页"><span className="brand-mark"><img src="/qdii-radar-logo.svg" alt="" width="39" height="39" /></span><span><strong>QDII 额度雷达</strong><small>QDII RADAR</small></span></button>
@@ -307,9 +315,8 @@ function App() {
       <main>
         {(loading || loadError) && <div className="live-status" role="status"><Info size={15} />{loading ? '正在加载真实数据…' : loadError}</div>}
         {!loading && <DataIssues funds={funds} syncing={dataMeta.lastRun?.status === 'running'} onDetail={fund => setModal({type: 'fund', fund})}/>}
-        <div className="page-heading"><div><div className="eyebrow"><span />NASDAQ 100 & S&P 500</div><h1>{page === 'overview' ? '今日申购额度' : page === 'calculator' ? '购买计算器' : page === 'changes' ? '额度动态' : '我的邮箱提醒'}</h1>{page !== 'overview' && <p>{page === 'calculator' ? '输入金额与目标比例，算清每次投多少、预计多久投完。' : page === 'changes' ? '查看近30天恢复申购、额度调整等变化，按生效时间倒序排列。' : '选择你关心的变化，其余时间安心等待。'}</p>}</div><div className="heading-actions">{page === 'overview' && venue === 'otc' && <button type="button" role="switch" aria-checked={excludeSmall} aria-label="剔除10元及以下额度" className="overview-quota-switch calculator-toggle-row" onClick={() => setExcludeSmall(value => !value)}><span>剔除 ≤10 元额度</span><span className="calculator-toggle-track" aria-hidden="true"><span/></span></button>}{page === 'overview' && <button className="quota-changes-notice" onClick={() => changePage('changes')} title={dataMeta.changesCoverage?.complete ? '查看近30天额度变化明细' : '查看近30天已核验的额度变化；部分历史仍在核验中'}><span className="changes-notice-period">近30天</span><span className="changes-notice-text">{quotaChanges.length || dataMeta.changesCoverage?.complete ? <><strong>{quotaChanges.length}</strong> 条额度动态</> : '历史待核验'}</span><ArrowRight size={15} aria-hidden="true" /></button>}{NOTIFICATIONS_ENABLED && <button className="button primary heading-cta" onClick={() => openAlert()}><Bell size={17} />设置额度提醒</button>}</div></div>
+        <div className="page-heading"><div><div className="eyebrow"><span />NASDAQ 100 & S&P 500</div><h1>{page === 'overview' ? '今日申购额度' : page === 'changes' ? '额度动态' : '我的邮箱提醒'}</h1>{page !== 'overview' && <p>{page === 'changes' ? '查看近30天恢复申购、额度调整等变化，按生效时间倒序排列。' : '选择你关心的变化，其余时间安心等待。'}</p>}</div><div className="heading-actions">{page === 'overview' && venue === 'otc' && <button type="button" role="switch" aria-checked={excludeSmall} aria-label="剔除10元及以下额度" className="overview-quota-switch quota-toggle-row" onClick={() => setExcludeSmall(value => !value)}><span>剔除 ≤10 元额度</span><span className="quota-toggle-track" aria-hidden="true"><span/></span></button>}{page === 'overview' && <button className="quota-changes-notice" onClick={() => changePage('changes')} title={dataMeta.changesCoverage?.complete ? '查看近30天额度变化明细' : '查看近30天已核验的额度变化；部分历史仍在核验中'}><span className="changes-notice-period">近30天</span><span className="changes-notice-text">{quotaChanges.length || dataMeta.changesCoverage?.complete ? <><strong>{quotaChanges.length}</strong> 条额度动态</> : '历史待核验'}</span><ArrowRight size={15} aria-hidden="true" /></button>}{NOTIFICATIONS_ENABLED && <button className="button primary heading-cta" onClick={() => openAlert()}><Bell size={17} />设置额度提醒</button>}</div></div>
         {page === 'overview' && venue === 'otc' && <QuotaOverview funds={otcFunds} excludeSmall={excludeSmall} />}
-        {page === 'calculator' && <PurchaseCalculator funds={funds} favorites={favorites} updatedAt={dataMeta.updatedAt} onDetail={fund => fund && setModal({ type: 'fund', fund })} />}
         {isBoard && <div className="venue-tabs" role="group" aria-label="交易方式">{[['otc', '场外申购', otcFunds.length], ['etf', '场内 ETF', funds.length - otcFunds.length]].map(([id, title, count]) => <button key={id} className={cn(venue === id && 'selected')} aria-pressed={venue === id} onClick={() => { usage.tabClick('venue', id, page); setVenue(id); setOnlyOpen(id === 'otc'); setSort(id === 'etf' ? 'premium:asc' : 'combined:desc'); }}>{title}<span>{count}</span></button>)}</div>}
         {isBoard && <section className="fund-board" aria-label="基金比较">
           <div className="board-header"><div className="index-tabs" role="tablist" aria-label="指数分类">{[['all', '全部基金'], ['nasdaq', '纳斯达克100'], ['sp500', '标普500']].map(([id, text]) => <button key={id} role="tab" aria-selected={tab === id} className={cn(tab === id && 'selected')} onClick={() => { usage.tabClick('index', id, page); setTab(id); }}>{text}<span data-index-count={id} title={showOpenCounts ? `可申购 ${indexCounts[id].open} 只 / 全部 ${indexCounts[id].total} 只（按基金份额统计）` : `全部 ${indexCounts[id].total} 只`}>{showOpenCounts ? `${indexCounts[id].open}/${indexCounts[id].total}` : indexCounts[id].total}</span></button>)}</div></div>

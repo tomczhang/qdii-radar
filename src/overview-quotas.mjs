@@ -1,6 +1,6 @@
 import {quotaContribution} from '../shared/quota-scope.mjs';
 
-// A display-only projection: never change source quotas or calculator inputs.
+// A display-only projection: never change source quota records.
 function excludeSmallQuota(quota) {
   const limit = quota?.scope?.mode === 'shared' && Number.isFinite(quota.scope.cap)
     ? Math.min(quota.limit, quota.scope.cap) : quota?.limit;

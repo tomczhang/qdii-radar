@@ -40,45 +40,26 @@ try {
   await page.getByRole('button', { name: /场内 ETF/ }).click(); await waitCount(3);
   await page.getByRole('tab', { name: /纳斯达克100/ }).click(); await waitCount(4);
   assert.deepEqual(events.slice(2).map(e => e.name), ['tab_venue_etf', 'tab_index_nasdaq']);
-  await nav('购买计算器').click(); await waitCount(6);
-  assert.equal(await page.getByRole('radio', { name: /每月固定投入/ }).isChecked(), true);
-  await page.getByRole('button', { name: '生成方案', exact: true }).click(); await waitCount(7);
-  assert.equal(events.at(-1).name, 'calculator_calculate_click', 'invalid submission still counts as click intent');
-  await page.getByLabel('每月投入预算（元）').fill('1234');
-  await page.getByRole('button', { name: '生成方案', exact: true }).click(); await waitCount(8);
-  await page.getByRole('dialog').waitFor({ state: 'hidden' });
-  assert.equal(await page.getByRole('dialog').isVisible(), false);
-  await page.getByRole('button', { name: '修改条件', exact: true }).click();
-  await page.getByLabel('每月投入预算（元）').focus(); await page.keyboard.press('Enter'); await waitCount(9);
-  await page.getByRole('dialog').waitFor({ state: 'hidden' });
-  assert.equal(events.filter(e => e.name === 'calculator_calculate_click').length, 3, 'Enter submits once');
-  await page.reload({ waitUntil: 'networkidle' }); await waitCount(10);
-  await nav('购买计算器').click(); await waitCount(12);
-  assert.equal(await page.getByRole('dialog').isVisible(), false, 'restore does not require calculation');
-  assert.equal(events.filter(e => e.name === 'calculator_calculate_click').length, 3, 'snapshot auto-restore never counts as click');
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('.mobile-nav').getByRole('button', { name: '额度动态', exact: true }).click(); await waitCount(14);
+  await nav('额度动态').click(); await waitCount(6);
   assert.equal(events.at(-1).url, '/changes');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.mobile-nav').getByRole('button', { name: '基金总览', exact: true }).click(); await waitCount(8);
   assert.ok(events.every(e => !e.data || Object.keys(e.data).every(k => ['group', 'tab'].includes(k))));
   assert.deepEqual(localWrites, []);
   assert.deepEqual(errors, []);
   assert.equal(runtime.store.db.prepare("SELECT COUNT(*) n FROM sqlite_master WHERE name='usage_events'").get().n, 0);
-  // Script unavailable: UI and calculations must remain usable.
+  // Public data remains usable when statistics are blocked.
   await page.route('https://cloud.umami.is/script.js', route => route.abort());
   await page.reload({ waitUntil: 'networkidle' });
-  await page.locator('.mobile-nav').getByRole('button', { name: '购买计算器', exact: true }).click();
-  await page.getByRole('button', { name: '修改条件', exact: true }).click();
-  await page.getByLabel('每月投入预算（元）').fill('500');
-  await page.getByRole('button', { name: '生成方案', exact: true }).click();
-  await page.getByRole('dialog').waitFor({ state: 'hidden' });
-  assert.equal(await page.getByRole('dialog').isVisible(), false);
-  assert.equal(events.length, 14);
+  await page.locator('.mobile-nav').getByRole('button', { name: '额度动态', exact: true }).click();
+  await page.getByRole('heading', {name:'额度动态',exact:true}).waitFor();
+  assert.equal(events.length, 8);
   // No ID: do not even load the third-party script.
   await page.route('**/api/public-config', route => route.fulfill({ json: { umamiWebsiteId: null } }));
   await page.reload({ waitUntil: 'networkidle' });
   assert.equal(await page.locator('script[data-website-id]').count(), 0);
   assert.deepEqual(errors, []);
-  console.log('Usage smoke passed: PV, desktop/mobile tabs, click intent, Enter, restore, monthly default, blocked/disabled tracker, no local event storage.');
+  console.log('Usage smoke passed: PV, desktop/mobile tabs, blocked/disabled tracker, no local event storage.');
 } finally {
   await browser.close();
   await new Promise(resolve => server.close(resolve));

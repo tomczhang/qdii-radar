@@ -37,7 +37,7 @@ async function setup(t, { disabled = false, https = false, mailConfigured = true
   const session = async (cookies = jar) => (await request('/api/auth/session', {}, cookies)).json();
   const token = () => new URL(messages.at(-1).url).searchParams.get('token');
   const register = async (address = email, cookies = jar) => {
-    const response = await post('register', { name, email: address, password, returnTo: '/?page=calculator' }, cookies);
+    const response = await post('register', { name, email: address, password, returnTo: '/?page=changes' }, cookies);
     assert.equal(response.status, 200, await response.text());
     const activation = await post('activate', { token: token() }, cookies);
     assert.equal(activation.status, 200, await activation.text());
@@ -53,7 +53,7 @@ test('configuration validates HTTPS, return URLs and ignores old account-center 
   assert.throws(() => accountConfig({ ACCOUNT_AUTH_ENABLED: 'yes' }));
   for (const origin of ['http://radar.example.test', 'http://localhost:4387', 'https://x:y@radar.example.test', 'https://radar.example.test?q=1', 'https://radar.example.test/path']) assert.throws(() => accountConfig({ NODE_ENV: 'production' }, origin));
   assert.equal(accountConfig({ NODE_ENV: 'production', ACCOUNT_CENTER_CLIENT_ID: 'obsolete' }, 'https://radar.example.test').origin, 'https://radar.example.test');
-  for (const value of ['https://evil.test', '//evil.test', '/\\evil.test', '/auth/login', '/?page=calculator&token=private', ['/', '//evil.test']]) assert.equal(authReturnTo(value), '/');
+  for (const value of ['https://evil.test', '//evil.test', '/\\evil.test', '/auth/login', '/?page=changes&token=private', ['/', '//evil.test']]) assert.equal(authReturnTo(value), '/');
 });
 
 test('disabled or missing mail service explicitly disables accounts', async t => {
@@ -67,7 +67,7 @@ test('disabled or missing mail service explicitly disables accounts', async t =>
 
 test('nickname/email/password registration emails an activation link; no account or session before activation', async t => {
   const s = await setup(t, { https: true });
-  const response = await s.post('register', { name, email: ` ${email.toUpperCase()} `, password, returnTo: '/?page=calculator' });
+  const response = await s.post('register', { name, email: ` ${email.toUpperCase()} `, password, returnTo: '/?page=changes' });
   assert.equal(response.status, 200);
   const data = await response.json(), token = s.token();
   assert.equal(data.sent, true); assert.ok(!JSON.stringify(data).includes(token));
@@ -84,7 +84,7 @@ test('nickname/email/password registration emails an activation link; no account
   assert.equal(s.store.db.prepare('SELECT COUNT(*) n FROM local_account_users').get().n, 0, 'GET prefetch cannot activate');
   const otherBrowser = new Map();
   const activated = await s.post('activate', { token }, otherBrowser);
-  assert.equal(activated.status, 200); assert.equal((await activated.json()).redirectTo, '/?page=calculator');
+  assert.equal(activated.status, 200); assert.equal((await activated.json()).redirectTo, '/?page=changes');
   assert.ok(activated.headers.getSetCookie().some(value => value.startsWith('__Host-radar_session=') && value.includes('Secure') && value.includes('HttpOnly') && !value.includes('Domain=')));
   const account = await s.session(otherBrowser);
   assert.equal(account.user.name, name); assert.equal(account.user.email, email);

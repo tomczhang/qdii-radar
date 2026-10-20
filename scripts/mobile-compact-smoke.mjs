@@ -57,19 +57,6 @@ try {
  }
  check('Desktop index history stays visible',await page.locator('[data-index-history]:visible').count()===2);
  await page.screenshot({path:'outputs/mobile-compact/desktop.png'});
- for(const width of [390,320,1440]) {
-  await page.setViewportSize({width,height:844});
-  await page.locator(width>860?'.sidebar':'.mobile-nav').getByRole('button',{name:'购买计算器',exact:true}).click();
-  const drawer=page.getByRole('dialog',{name:'设置投入条件'});
-  if(!await drawer.isVisible())await page.getByRole('button',{name:'设置条件',exact:true}).click();
-  await drawer.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
-  check(`Drawer animation direction at ${width}`,await drawer.evaluate((el,mobile)=>getComputedStyle(el).animationName===(mobile?'conditions-enter-bottom':'conditions-enter'),width<=760));
-  check(`Drawer and action fit viewport at ${width}`,await drawer.evaluate(el=>{const r=el.getBoundingClientRect(),b=el.querySelector('.calculate-button').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1&&b.bottom<=innerHeight&&el.scrollWidth<=el.clientWidth+1;}));
-  if(width<=760)check(`Mobile sheet is bottom anchored at ${width}`,await drawer.evaluate(el=>Math.abs(el.getBoundingClientRect().bottom-innerHeight)<1&&el.getBoundingClientRect().top>0));
-  if(width===390)await page.screenshot({path:'outputs/mobile-compact/conditions.png'});
-  await page.keyboard.press('Escape');await drawer.waitFor({state:'hidden'});
-  check(`Closing restores background scroll at ${width}`,await page.evaluate(()=>document.body.style.overflow!=='hidden'));
- }
  check('No runtime errors or writes',errors.length===0&&writes.length===0);
  await fs.writeFile('outputs/mobile-compact/qa.json',JSON.stringify({metrics,checks,errors,writes},null,2));
  console.log(JSON.stringify({passed:checks.length,metrics,checks,errors,writes},null,2));
