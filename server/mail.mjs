@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { digest } from './domain.mjs';
 import { createResendTransport } from './resend.mjs';
+import { accountEmail } from './account-email.mjs';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export function createMailService(store, { fetchImpl = fetch } = {}) {
@@ -13,6 +14,7 @@ export function createMailService(store, { fetchImpl = fetch } = {}) {
   const transport = process.env.MAIL_TRANSPORT || (process.env.RESEND_API_KEY ? 'resend' : 'smtp');
   if (!['file', 'smtp', 'resend', 'disabled'].includes(transport)) throw new Error('不支持的邮件服务类型');
   const fileMode = transport === 'file';
+  if (fileMode && process.env.NODE_ENV === 'production') throw new Error('生产环境不能使用文件邮箱');
   const resendMode = transport === 'resend';
   const from = (resendMode ? process.env.RESEND_FROM : process.env.SMTP_FROM)?.trim();
   const replyTo = process.env.MAIL_REPLY_TO?.trim();
@@ -105,6 +107,25 @@ export function createMailService(store, { fetchImpl = fetch } = {}) {
   }
   return {
     configured, transport: configured ? transport : 'disabled', saveSubscription, removeSubscription, queueEvent, deliver, issueVerification,
+    async sendAccountLink(email, url, requestId, purpose) {
+      if (!configured || (resendMode && store.getMeta('resendCooldownUntil') > Date.now())) throw new Error('账号邮件服务暂时不可用');
+      const mail = {
+        from: from || 'radar@example.test', ...(replyTo ? { replyTo } : {}), to: email,
+        ...accountEmail(url, purpose),
+        messageId: `<${digest(requestId)}@quota-radar.local>`,
+      };
+      if (fileMode) {
+        const dir = path.join(store.directory, 'mailbox');
+        fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+        fs.writeFileSync(path.join(dir, `account-${digest(requestId)}.json`), JSON.stringify(mail), { mode: 0o600 });
+      } else if (resendMode) {
+        try { await transporter.sendMail(mail, `qdii-radar/account/${digest(requestId)}`); }
+        catch (error) {
+          if (error.code === 'resend_http_429') store.setMeta('resendCooldownUntil', Date.now() + Math.max(60000, error.retryAfterMs || 0));
+          throw error;
+        }
+      } else await transporter.sendMail(mail);
+    },
     list(owner) { return store.db.prepare('SELECT * FROM subscriptions WHERE owner=? ORDER BY created_at DESC').all(owner).map(publicSubscription); },
     verify(token) { if (!/^[a-f0-9]{64}$/.test(token || '')) return false; return !!store.db.prepare('UPDATE subscriptions SET verified=1,verify_hash=NULL,updated_at=? WHERE verify_hash=? AND expires_at>?').run(new Date().toISOString(), digest(token), new Date().toISOString()).changes; },
     unsubscribe(id, token) { if (!/^[a-f0-9]{32}$/.test(id || '') || !/^[a-f0-9]{64}$/.test(token || '')) return false; const row = store.db.prepare('SELECT * FROM subscriptions WHERE id=? AND unsubscribe_hash=?').get(id, digest(token)); return row ? removeSubscription(row.owner, id) : false; },

@@ -17,8 +17,6 @@
 .account-main{width:100%;max-width:560px;margin:42px auto 56px;padding:0 24px;flex:1}
 .account-heading{text-align:center;margin-bottom:32px}.account-heading h1{font-size:34px;color:#182233;font-weight:700;letter-spacing:1px}.account-heading p{font-size:15px;color:#727e90;margin-top:13px;line-height:1.8}
 .account-card{padding:36px;background:#fff;border:1px solid #e0e5ed;border-radius:18px;box-shadow:0 2px 4px #18223306}
-.account-sso{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;min-height:50px;padding:12px 16px;border:1px solid #cdd5e0;border-radius:9px;color:#253143;background:#fff;font-size:15px;font-weight:650;text-decoration:none;text-align:center;line-height:1.5}
-.account-sso:hover{border-color:var(--blue);background:#f7faff}.account-sso:disabled{color:#8b96a6;background:#f6f7f9;border-color:#e0e5ed}.account-sso[aria-disabled=true]{color:var(--muted)}
 .account-explanation{margin-top:22px;font-size:13px;line-height:1.9;color:#727e90;text-align:center}
 .account-divider{display:flex;align-items:center;gap:13px;margin:30px 0 24px;font-size:12px;white-space:nowrap;color:#929dad}.account-divider:before,.account-divider:after{content:'';height:1px;background:#e0e5ed;flex:1}
 .account-primary{display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 18px;min-height:48px;border-radius:9px;background:var(--blue);color:white;text-decoration:none;font-size:14px;font-weight:600}.account-primary:hover{background:var(--blue-dark)}
@@ -30,4 +28,20 @@
 .account-profile{text-align:center;overflow-wrap:anywhere;margin-bottom:24px}.account-profile .account-avatar{width:44px;height:44px;font-size:20px;margin:0 auto 14px}.account-profile>strong{font-size:18px}.account-profile p{font-size:13px;color:var(--muted);margin-top:7px}
 .account-manage{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:22px;font-size:13px;text-decoration:none}.account-page-logout{display:flex;justify-content:center;gap:16px;margin-top:16px;flex-wrap:wrap}.account-page-logout button{color:var(--muted);font-size:12px}
 @media(max-width:860px){.topbar .account-login,.topbar .account-control,.topbar .account-loading{grid-column:2;grid-row:1;justify-self:end}.topbar .update-status{grid-column:1/-1;grid-row:2;justify-self:end}.topbar .publisher-follow{grid-row:3}}
-@media(max-width:700px){.account-name{display:none}.account-login{font-size:11px;padding:4px;gap:5px}.account-trigger{padding:4px}.account-page-header{padding:20px}.account-brand{font-size:14px}.account-back{font-size:12px}.account-main{margin:38px auto 40px;max-width:480px;padding:0 20px}.account-heading h1{font-size:30px}.account-heading p{font-size:14px}.account-card{padding:28px 22px;border-radius:15px}.account-sso{font-size:14px;gap:8px}.account-footnote{font-size:10px}.account-footer{gap:8px;flex-direction:column;text-align:center}}
+@media(max-width:700px){.account-name{display:none}.account-login{font-size:11px;padding:4px;gap:5px}.account-trigger{padding:4px}.account-page-header{padding:20px}.account-brand{font-size:14px}.account-back{font-size:12px}.account-main{margin:38px auto 40px;max-width:480px;padding:0 20px}.account-heading h1{font-size:30px}.account-heading p{font-size:14px}.account-card{padding:28px 22px;border-radius:15px}.account-footnote{font-size:10px}.account-footer{gap:8px;flex-direction:column;text-align:center}}
+
+.account-form{display:flex;flex-direction:column;gap:8px}
+.account-form label{font-size:13px;font-weight:600;color:var(--ink);margin-top:8px}
+.account-form input{width:100%;min-width:0;height:40px;min-height:40px;border:1px solid #cdd5e0;border-radius:6px;background:white;padding:8px 12px;font:inherit;font-size:14px;line-height:22px;color:var(--ink)}
+.account-form input:focus-visible,.account-page button:focus-visible{outline:2px solid #8cb4fc;outline-offset:2px}
+.account-form input:disabled{background:#f7f9fc;color:var(--muted)}
+.account-form .account-primary{width:100%;min-height:42px;padding:10px 16px;margin-top:12px;border:0;border-radius:6px;cursor:pointer}
+.account-form button:disabled{opacity:.55;cursor:default}
+.account-forgot{align-self:flex-end;font-size:13px;text-decoration:none;margin-top:4px}
+.account-guest{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;font-size:14px;text-decoration:none;color:var(--muted)}
+.account-message{overflow-wrap:anywhere}
+@media(max-width:700px){.account-form input{font-size:16px}}
+
+.account-password-field{position:relative}
+.account-password-field input{padding-right:42px}
+.account-password-toggle{position:absolute;inset:0 0 0 auto;width:40px;display:grid;place-items:center;color:var(--muted);border-radius:6px}

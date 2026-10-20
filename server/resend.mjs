@@ -5,7 +5,7 @@ export function createResendTransport({ apiKey, fetchImpl = fetch }) {
       const response = await fetchImpl('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey, 'User-Agent': 'QDII-Radar-Mail/1.0' },
-        body: JSON.stringify({ from: mail.from, to: [mail.to], subject: mail.subject, text: mail.text, headers: mail.headers, ...(mail.replyTo ? { reply_to: mail.replyTo } : {}) }),
+        body: JSON.stringify({ from: mail.from, to: [mail.to], subject: mail.subject, text: mail.text, ...(mail.html ? { html: mail.html } : {}), headers: mail.headers, ...(mail.replyTo ? { reply_to: mail.replyTo } : {}) }),
         signal: AbortSignal.timeout(15000), redirect: 'error',
       });
       const result = await response.json().catch(() => ({}));

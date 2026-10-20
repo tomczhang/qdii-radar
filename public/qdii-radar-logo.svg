@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">额度雷达</title>
+  <desc id="desc">蓝色半透明叠层组成圆润的 Q，右上角的信号点代表发现可用额度。</desc>
+  <defs>
+    <linearGradient id="sheet" x1="40" y1="49" x2="155" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B8D4FF"/>
+      <stop offset="1" stop-color="#86B3FA"/>
+    </linearGradient>
+    <linearGradient id="body" x1="77" y1="72" x2="191" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6599F5"/>
+      <stop offset="1" stop-color="#2364E8"/>
+    </linearGradient>
+    <linearGradient id="signal" x1="176" y1="61" x2="198" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#92BCFF"/>
+      <stop offset="1" stop-color="#508AF1"/>
+    </linearGradient>
+  </defs>
+  <path d="M51 47 167 28C178 26 184 33 179 43L111 183C108 190 102 194 94 195L48 202C37 204 30 197 30 186V72C30 58 37 50 51 47Z" fill="url(#sheet)" fill-opacity=".74"/>
+  <path d="M160 69C150 64 138 62 126 64L91 70C73 73 62 86 62 105V162C62 185 77 201 99 198L145 191C151 190 157 188 162 185L185 202C192 207 201 205 205 198C209 192 207 186 202 182L183 167C198 153 205 132 201 112C200 106 195 103 189 104L180 106C174 107 171 112 172 118C174 139 160 158 138 162L117 165C102 168 91 158 91 143V115C91 104 97 98 108 96L130 92C136 91 142 92 148 94C153 96 159 94 162 89L166 82C169 77 166 72 160 69Z" fill="url(#body)" fill-opacity=".88"/>
+  <circle cx="187" cy="76" r="15" fill="url(#signal)"/>
+</svg>

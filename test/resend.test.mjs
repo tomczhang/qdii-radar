@@ -61,3 +61,40 @@ test('只有Key缺少发件人时不可启用，disabled显式关闭',()=>{
   process.env.MAIL_TRANSPORT='disabled';assert.equal(createMailService(store).configured,false);
  }finally{store.close();fs.rmSync(dir,{recursive:true,force:true});for(const key of Object.keys(process.env))if(!(key in original))delete process.env[key];Object.assign(process.env,original);}
 });
+
+test('账号邮件按用途直接投递、不创建订阅，Resend 429 共享冷却且不请求真实网络', async () => {
+ const original = { ...process.env }, dir = fs.mkdtempSync(path.join(os.tmpdir(), 'radar-account-mail-')), store = openStore(dir);
+ try {
+  Object.assign(process.env, { MAIL_TRANSPORT: 'resend', RESEND_API_KEY: 'fake-key', RESEND_FROM: message.from, PUBLIC_BASE_URL: 'https://example.test' });
+  const calls = []; let throttle = false;
+  const mail = createMailService(store, { fetchImpl: async (url, options) => { calls.push(options); return throttle ? Response.json({}, { status: 429, headers: { 'Retry-After': '90' } }) : Response.json({ id: 'account-mail' }); } });
+  await mail.sendAccountLink(message.to, 'https://example.test/activate?token=activation-token', 'register-request', 'activate');
+  await mail.sendAccountLink(message.to, 'https://example.test/reset-password?token=reset-token', 'reset-request', 'reset');
+  assert.match(JSON.parse(calls[0].body).subject, /激活/);
+  assert.match(JSON.parse(calls[1].body).subject, /重设.*密码/);
+  assert.match(JSON.parse(calls[0].body).text, /activate\?token=activation-token/);
+  for (const [i, action] of ['激活账号', '重置密码'].entries()) {
+    const body = JSON.parse(calls[i].body);
+    assert.match(body.html, /<h1 /);
+    assert.ok(body.html.includes(`>${action}</a>`));
+    assert.ok(body.html.includes(i ? '30 分钟' : '24 小时'));
+    assert.ok(body.text.includes(i ? 'reset-token' : 'activation-token'));
+  }
+  assert.notEqual(calls[0].headers['Idempotency-Key'], calls[1].headers['Idempotency-Key']);
+  assert.equal(store.db.prepare('SELECT COUNT(*) n FROM subscriptions').get().n, 0);
+  assert.equal(store.db.prepare('SELECT COUNT(*) n FROM outbox').get().n, 0);
+  throttle = true;
+  await assert.rejects(() => mail.sendAccountLink(message.to, 'https://example.test/activate?token=activation-token', 'throttle', 'activate'));
+  await assert.rejects(() => mail.sendAccountLink(message.to, 'https://example.test/activate?token=activation-token', 'cooldown', 'activate'));
+  assert.equal(calls.length, 3);
+  assert.ok(store.getMeta('resendCooldownUntil') > Date.now());
+  process.env.MAIL_TRANSPORT = 'disabled';
+  await assert.rejects(() => createMailService(store).sendAccountLink(message.to, 'https://example.test/activate?token=activation-token', 'disabled', 'activate'));
+  process.env.MAIL_TRANSPORT = 'file'; process.env.NODE_ENV = 'production';
+  assert.throws(() => createMailService(store), /生产环境/);
+ } finally {
+  store.close(); fs.rmSync(dir, { recursive: true, force: true });
+  for (const key of Object.keys(process.env)) if (!(key in original)) delete process.env[key];
+  Object.assign(process.env, original);
+ }
+});

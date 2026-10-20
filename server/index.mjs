@@ -11,7 +11,7 @@ import { miniappDashboard } from './miniapp-dashboard.mjs';
 import { digest } from './domain.mjs';
 import { accountConfig, installAccountAuth } from './auth.mjs';
 
-export async function createApplication({ store = openStore(), mail = createMailService(store), startJobs = true, development = process.env.NODE_ENV !== 'production' } = {}) {
+export async function createApplication({ store = openStore(), mail = createMailService(store), startJobs = true, development = process.env.NODE_ENV !== 'production', hmr = true } = {}) {
   const app = express();
   app.disable('x-powered-by');
   const proxyHops = Number(process.env.TRUST_PROXY_HOPS || 0);
@@ -19,7 +19,9 @@ export async function createApplication({ store = openStore(), mail = createMail
   if (proxyHops) app.set('trust proxy', proxyHops);
   const portIndex = process.argv.indexOf('--port');
   const port = Number(portIndex >= 0 ? process.argv[portIndex + 1] : process.env.PORT || 4387);
-  const origin = process.env.PUBLIC_BASE_URL || `http://localhost:${port}`;
+  // Local development must not inherit the production origin (or Secure cookies)
+  // from a shared .env. A separate override supports explicit development proxies.
+  const origin = (development ? process.env.DEV_BASE_URL : process.env.PUBLIC_BASE_URL) || `http://localhost:${port}`;
   const authConfig = accountConfig(process.env, origin);
   const adminToken = process.env.ADMIN_TOKEN;
   seedRules(store);
@@ -28,8 +30,8 @@ export async function createApplication({ store = openStore(), mail = createMail
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('X-Frame-Options', 'DENY');
     if (req.path.startsWith('/api')) res.setHeader('Cache-Control', 'no-store');
-    // Logout applies its own Origin/Fetch Metadata plus per-session CSRF checks.
-    if (req.path !== '/api/auth/logout' && ['POST', 'PATCH', 'DELETE'].includes(req.method) && req.headers.origin && req.headers.origin !== new URL(origin).origin && req.headers.origin !== `${req.protocol}://${req.get('host')}`) return res.status(403).json({ error: '不允许跨站修改' });
+    // Auth endpoints apply their own bounded origin allowlist; logout also checks CSRF.
+    if (!req.path.startsWith('/api/auth/') && ['POST', 'PATCH', 'DELETE'].includes(req.method) && req.headers.origin && req.headers.origin !== new URL(origin).origin && req.headers.origin !== `${req.protocol}://${req.get('host')}`) return res.status(403).json({ error: '不允许跨站修改' });
     next();
   });
   app.use(express.json({ limit: '16kb' }));
@@ -54,11 +56,10 @@ export async function createApplication({ store = openStore(), mail = createMail
     const board = dashboard(store, mail);
     res.json(req.query.view === 'miniapp' ? miniappDashboard(board) : board);
   });
-  installAccountAuth(app, { store, config: authConfig, rateLimit });
+  installAccountAuth(app, { store, config: authConfig, rateLimit, mail });
   app.use((req, res, next) => {
-    // Strict guest cookies are withheld on cross-site OIDC redirects. Do not
-    // replace them during authentication or while an account session is active.
-    if (req.accountSession || ['/login', '/register'].includes(req.path)) return next();
+    // Preserve the anonymous browser identity while using a product account.
+    if (req.accountSession || ['/login', '/register', '/reset-password', '/activate'].includes(req.path)) return next();
     const cookie = req.headers.cookie?.split(';').map(s => s.trim()).find(s => s.startsWith('radar_owner='))?.slice(12);
     const owner = /^[a-f0-9]{64}$/.test(cookie || '') ? cookie : randomBytes(32).toString('hex');
     if (owner !== cookie) res.append('Set-Cookie', `radar_owner=${owner}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${origin.startsWith('https:') ? '; Secure' : ''}`);
@@ -111,7 +112,7 @@ export async function createApplication({ store = openStore(), mail = createMail
   app.use('/api', (req, res) => res.status(404).json({ error: '接口不存在' }));
   app.use((error, req, res, next) => { if (res.headersSent) return next(error); const status = error instanceof z.ZodError || error.type === 'entity.parse.failed' ? 400 : error.status || 500; res.status(status).json({ error: status === 400 ? '参数格式不正确，请检查邮箱、基金和提醒选项' : status === 404 ? '提醒不存在' : '服务暂时不可用，请稍后重试' }); });
   let vite;
-  if (development) { const { createServer } = await import('vite'); vite = await createServer({ root: process.cwd(), server: { middlewareMode: true, fs: { deny: ['**/.env*', '**/.data/**', '**/.test-data/**', '**/server/**', '**/work/**', '**/outputs/**', '**/*.{crt,pem}'] } }, appType: 'spa' }); app.use(vite.middlewares); }
+  if (development) { const { createServer } = await import('vite'); vite = await createServer({ root: process.cwd(), server: { middlewareMode: true, hmr, fs: { deny: ['**/.env*', '**/.data/**', '**/.test-data/**', '**/server/**', '**/work/**', '**/outputs/**', '**/*.{crt,pem}'] } }, appType: 'spa' }); app.use(vite.middlewares); }
   else { app.use(express.static(path.resolve('dist'))); app.get('/{*path}', (req, res) => res.sendFile(path.resolve('dist/index.html'))); }
   const stopJobs = startJobs ? startScheduler(store, mail) : () => {};
   return { app, store, mail, port, close: async () => { stopJobs(); if (vite) await vite.close(); store.close(); } };

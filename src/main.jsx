@@ -11,14 +11,14 @@ import { createQuotaComparator, createFeeChannelComparator } from './fund-sort.m
 import { totalQuota, quotaDelta } from './summary.mjs';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Calculator, ArrowDown, ArrowDownUp, ArrowRight, ArrowUpRight, Bell, BellRing, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, HelpCircle, Info, LayoutGrid, Mail, Plus, Radar, Search, ShieldCheck, SlidersHorizontal, Sparkles, Star, TrendingUp, X } from 'lucide-react';
+import { Calculator, ArrowDown, ArrowDownUp, ArrowRight, ArrowUpRight, Bell, BellRing, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, HelpCircle, Info, LayoutGrid, Mail, Plus, Search, ShieldCheck, SlidersHorizontal, Sparkles, Star, TrendingUp, X } from 'lucide-react';
 import './styles.css';
 import PurchaseCalculator from './components/PurchaseCalculator.jsx';
 import InvestmentRisk from './components/InvestmentRisk.jsx';
 import UpdateStatus from './components/UpdateStatus.jsx';
 import PublisherFollow from './components/PublisherFollow.jsx';
 import { AccountButton, AccountPage } from './components/Account.jsx';
-import {dashboardRefreshDelay} from '../shared/refresh-schedule.mjs';
+import {createDashboardLoader} from './dashboard-cache.mjs';
 const cn = (...values) => values.filter(Boolean).join(' ');
 const number = (n) => new Intl.NumberFormat('zh-CN').format(n);
 const percent = (n) => n == null ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
@@ -235,16 +235,25 @@ function App() {
     try { localStorage.setItem(storageKey, JSON.stringify({ favorites })); setStorageError(false); } catch { setStorageError(true); }
   }, [favorites]);
   useEffect(() => {
-    let cancelled = false, timer, latestMeta;
+    let cancelled = false, timer, pending = false;
+    const loadDashboard = createDashboardLoader({fetchBoard:()=>api('/api/dashboard'),storage:()=>window.localStorage});
     const load = async () => {
-      let failed = false;
-      try { const [board, subscriptions] = await Promise.all([api('/api/dashboard'), NOTIFICATIONS_ENABLED ? api('/api/subscriptions') : Promise.resolve({ subscriptions: [] })]);
-        if (cancelled) return; latestMeta = board.meta; setFunds(board.funds); setQuotaChanges(board.changes); setDataMeta(board.meta); setAlerts(subscriptions.subscriptions); setLoadError('');
+      if (cancelled || pending) return;
+      pending = true; clearTimeout(timer);
+      let failed = false, expiresAt;
+      try { const [cached, subscriptions] = await Promise.all([loadDashboard(), NOTIFICATIONS_ENABLED ? api('/api/subscriptions') : Promise.resolve({ subscriptions: [] })]);
+        if (cancelled) return;
+        const board=cached.board; expiresAt=cached.expiresAt;
+        setFunds(board.funds); setQuotaChanges(board.changes); setDataMeta(board.meta); setAlerts(subscriptions.subscriptions); setLoadError('');
       } catch (error) { failed = true; if (!cancelled) setLoadError(error.message); }
-      finally { if (!cancelled) { setLoading(false); timer = setTimeout(load, dashboardRefreshDelay(latestMeta, Date.now(), failed)); } }
+      finally { pending = false; if (!cancelled) { setLoading(false); timer = setTimeout(load, failed ? 15000 : Math.max(1, expiresAt-Date.now())); } }
     };
+    const resume = () => { if (!document.hidden) load(); };
     load();
-    return () => { cancelled = true; clearTimeout(timer); };
+    // Recheck absolute expiry after background timer throttling or device sleep.
+    document.addEventListener('visibilitychange',resume);
+    window.addEventListener('focus',resume);
+    return () => { cancelled = true; clearTimeout(timer); document.removeEventListener('visibilitychange',resume); window.removeEventListener('focus',resume); };
   }, []);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
   function notify(text) { setToast(text); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 4000); }
@@ -286,14 +295,14 @@ function App() {
   const nav = [{ id: 'overview', label: '基金总览', Icon: LayoutGrid }, { id: 'calculator', label: '购买计算器', Icon: Calculator }, { id: 'changes', label: '额度动态', Icon: TrendingUp, count: quotaChanges.length }, ...(NOTIFICATIONS_ENABLED ? [{ id: 'alerts', label: '邮箱提醒', Icon: Bell, count: alerts.length }] : [])];
   const isBoard = page === 'overview';
   return <div className="app-shell">
-    <aside className="sidebar"><button className="brand" onClick={() => changePage('overview')} aria-label="QDII 额度雷达首页"><span className="brand-mark"><Radar size={25} strokeWidth={1.9} /></span><span><strong>QDII 额度雷达</strong><small>QDII RADAR</small></span></button>
+    <aside className="sidebar"><button className="brand" onClick={() => changePage('overview')} aria-label="QDII 额度雷达首页"><span className="brand-mark"><img src="/qdii-radar-logo.svg" alt="" width="39" height="39" /></span><span><strong>QDII 额度雷达</strong><small>QDII RADAR</small></span></button>
       <div className="nav-caption">我的投资工具</div><nav aria-label="主导航">{nav.map(({ id, label, Icon, count }) => <button key={id} className={cn('nav-link', page === id && 'active')} onClick={() => { usage.tabClick('navigation', id, page); changePage(id); }}><Icon size={19} /><span>{label}</span>{count > 0 && <small>{count}</small>}</button>)}</nav>
       {NOTIFICATIONS_ENABLED && <div className="sidebar-tip"><span className="tip-icon"><BellRing size={21} /></span><strong>把等待交给提醒</strong><p>额度恢复或提高时，<br />让消息来找你。</p><button onClick={() => openAlert()}>设置邮箱提醒 <ArrowRight size={14} /></button></div>}
       <div className="sidebar-footer"><span className="live-dot" />专注国内 QDII 指数基金</div>
     </aside>
     <div className="workspace">
       <div className="workspace-header">
-      <header className="topbar"><div className="breadcrumb"><span>投资工具</span><ChevronRight size={14} /><strong>{nav.find(n => n.id === page)?.label}</strong></div><button className="mobile-brand" onClick={() => changePage('overview')}><Radar size={23} />QDII 额度雷达</button><div className="topbar-right"><PublisherFollow /><UpdateStatus meta={dataMeta} formatTime={dateTime} /><button className="top-help icon-button" aria-label="数据说明" onClick={() => setModal({ type: 'info' })}><HelpCircle size={18} /></button><AccountButton page={page} /></div></header>
+      <header className="topbar"><div className="breadcrumb"><span>投资工具</span><ChevronRight size={14} /><strong>{nav.find(n => n.id === page)?.label}</strong></div><button className="mobile-brand" onClick={() => changePage('overview')}><img src="/qdii-radar-logo.svg" alt="" width="30" height="30" />QDII 额度雷达</button><div className="topbar-right"><PublisherFollow /><UpdateStatus meta={dataMeta} formatTime={dateTime} /><button className="top-help icon-button" aria-label="数据说明" onClick={() => setModal({ type: 'info' })}><HelpCircle size={18} /></button><AccountButton page={page} /></div></header>
       </div>
       <main>
         {(loading || loadError) && <div className="live-status" role="status"><Info size={15} />{loading ? '正在加载真实数据…' : loadError}</div>}
@@ -327,4 +336,4 @@ function App() {
     {storageError && <div className="storage-error" role="alert">浏览器无法保存本机设置，本次更改将在关闭页面后丢失。</div>}
   </div>;
 }
-createRoot(document.getElementById('root')).render(['/login', '/register'].includes(window.location.pathname) ? <AccountPage /> : <App />);
+createRoot(document.getElementById('root')).render(['/login', '/register', '/reset-password', '/activate'].includes(window.location.pathname) ? <AccountPage /> : <App />);
